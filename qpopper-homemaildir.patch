@@ -1,0 +1,114 @@
+diff -ur qpopper2.53.orig/pop_dropcopy.c qpopper2.53/pop_dropcopy.c
+--- qpopper2.53.orig/pop_dropcopy.c	Thu Aug 26 14:56:26 1999
++++ qpopper2.53/pop_dropcopy.c	Thu Aug 26 15:13:38 1999
+@@ -283,18 +283,19 @@
+ {
+     struct passwd *pwp;
+ 
+-#ifdef HOMEDIRMAIL
+-    if ((pwp = getpwnam(p->user)) == NULL) {
+-	pop_log(p, POP_FAILURE, "unable to retrieve users password entry");
+-	return(-1);
++    if (pop_homedirmail) {
++	if ((pwp = getpwnam(p->user)) == NULL) {
++	    pop_log(p, POP_FAILURE, "unable to retrieve users password entry");
++	    return(-1);
++	}
++	strncpy(p->drop_name, pwp->pw_dir, sizeof(p->drop_name));
++	strncat(p->drop_name, "/", 1);
++	strncat(p->drop_name, pop_homedirmail, sizeof(p->drop_name) - strlen(p->drop_name));
++    } else {
++	strncpy(p->drop_name, POP_MAILDIR, sizeof(p->drop_name));
++	strncat(p->drop_name, "/", sizeof(p->drop_name) - strlen(p->drop_name));
++	strncat(p->drop_name, p->user, sizeof(p->drop_name) - strlen(p->drop_name));
+     }
+-    strncpy(p->drop_name, pwp->pw_dir, sizeof(p->drop_name));
+-    strncat(p->drop_name, "/.mail",sizeof(p->drop_name) - strlen(p->drop_name));
+-#else
+-    strncpy(p->drop_name, POP_MAILDIR, sizeof(p->drop_name));
+-    strncat(p->drop_name, "/", sizeof(p->drop_name) - strlen(p->drop_name));
+-    strncat(p->drop_name, p->user, sizeof(p->drop_name) - strlen(p->drop_name));
+-#endif
+ 
+     return(1);
+ }
+diff -ur qpopper2.53.orig/pop_init.c qpopper2.53/pop_init.c
+--- qpopper2.53.orig/pop_init.c	Thu Aug 26 14:56:26 1999
++++ qpopper2.53/pop_init.c	Thu Aug 26 15:09:57 1999
+@@ -217,7 +217,7 @@
+ #endif
+ 
+     /*  Process command line arguments */
+-    while ((c = getopt(argcount,argmessage,"dkst:T:b:")) != EOF)
++    while ((c = getopt(argcount,argmessage,"dkst:T:b:m::")) != EOF)
+         switch (c) {
+ 
+             /*  Debugging requested */
+@@ -269,6 +269,14 @@
+ 	    /*  Timeout value passed.  Default changed */
+ 	    case 'T':
+ 		pop_timeout = atoi(optarg);
++		break;
++
++	    /* ~/Mailbox */
++	    case 'm':
++		if ( optarg )
++			pop_homedirmail = optarg;
++		else
++			pop_homedirmail = "Mailbox";
+ 		break;
+ 
+             /*  Unknown option received */
+diff -ur qpopper2.53.orig/popper.8 qpopper2.53/popper.8
+--- qpopper2.53.orig/popper.8	Fri Jul 10 01:44:08 1998
++++ qpopper2.53/popper.8	Thu Aug 26 15:03:06 1999
+@@ -16,13 +16,14 @@
+ .SH NAME
+ popper \- pop 3 server
+ .SH SYNOPSIS
+-.B /usr/etc/popper
++.B /usr/sbin/popper
+ [ -d ]
+ [ -s ]
+ [ -k ]
+ [ -t trace-file]
+ [ -T timeout]
+ [ -b bulldir]
++[ -m [Mailbox]]
+ .SH DESCRIPTION
+ .I Popper
+ is an implementation of the Post Office Protocol server that runs on a
+@@ -65,6 +66,11 @@
+ not unreasonable.  Networks with large delays in sending packets (e.g., SLIP 
+ links) may require a larger value.  In this case 300 seconds (5 minutes) is not
+ unreasonable.  
++.PP
++The
++.B \-m [Mailbox]
++option indicates that mail is stored in users $HOME directory, you can
++specify where (relative to $HOME) the mail is.
+ .PP
+ The
+ .B \-b bulldir
+diff -ur qpopper2.53.orig/popper.c qpopper2.53/popper.c
+--- qpopper2.53.orig/popper.c	Fri Jul 10 01:44:08 1998
++++ qpopper2.53/popper.c	Thu Aug 26 15:10:52 1999
+@@ -52,6 +52,7 @@
+ int poptimeout = 0;
+ 
+ int	pop_timeout = POP_TIMEOUT;
++char	*pop_homedirmail = NULL;
+ 
+ FILE *debuglog;
+ 
+diff -ur qpopper2.53.orig/popper.h qpopper2.53/popper.h
+--- qpopper2.53.orig/popper.h	Thu Aug 26 14:56:26 1999
++++ qpopper2.53/popper.h	Thu Aug 26 15:11:07 1999
+@@ -153,6 +153,7 @@
+ #endif
+ 
+ extern int		pop_timeout;
++extern int		pop_homedirmail;
+ 
+ extern int		hangup;
+ 
