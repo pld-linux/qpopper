@@ -2,7 +2,7 @@ Summary:	POP3 daemon from Qualcomm
 Summary(pl):	Serwer POP3 tworzony przez Qualcomm
 Name:		qpopper
 Version:	4.0.4
-Release:	0.2
+Release:	0.3
 License:	BSD
 Group:		Networking/Daemons
 Source0:	ftp://ftp.qualcomm.com/eudora/servers/unix/popper/%{name}%{version}.tar.gz
@@ -10,6 +10,9 @@ Source1:	%{name}.pamd
 Source2:	%{name}.inetd
 Source3:	%{name}.init
 Source4:	%{name}.sysconfig
+Source5:	%{name}s.inetd
+Source6:	%{name}s.init
+Source7:	%{name}s.sysconfig
 Patch0:		%{name}4.0.4-ipv6-20020502.diff.gz
 Patch1:		%{name}-config.patch
 Patch2:		%{name}-basename.patch
@@ -55,7 +58,7 @@ tak¿e TLS/SSL.
 Summary:	inetd configs for Qpopper
 Summary(pl):	Pliki konfiguracyjne do u¿ycia Qpoppera poprzez inetd
 Group:		Networking/Daemons
-Prereq:		%{name}-common = %{version}
+Prereq:		%{name}-common = %{version}-%{release}
 Prereq:		rc-inetd
 Provides:	qpopper = %{version}-%{release}
 Requires:	inetdaemon
@@ -69,6 +72,22 @@ Qpopper configs for running from inetd.
 
 %description inetd -l pl
 Pliki konfiguracyjna Qpoppera do startowania demona poprzez inetd.
+
+%package ssl-inetd
+Summary:	inetd configs for Qpopper with SSL (pop3s)
+Summary(pl):	Pliki konfiguracyjne do u¿ycia Qpoppera poprzez inetd z obslug± SSL (pop3s)
+Group:		Networking/Daemons
+Prereq:		%{name}-common = %{version}-%{release}
+Prereq:		%{name}-inetd = %{version}-%{release}
+Prereq:		rc-inetd
+Requires:	inetdaemon
+
+%description ssl-inetd
+Qpopper configs for running from inetd with SSL (pop3s).
+
+%description ssl-inetd -l pl
+Pliki konfiguracyjna Qpoppera do startowania demona poprzez inetd
+z obs³ug± SSL (pop3s).
 
 %package standalone
 Summary:	standalone daemon configs for Qpopper
@@ -89,6 +108,23 @@ Qpopper configs for running as a standalone daemon.
 %description standalone -l pl
 Pliki konfiguracyjne Qpoppera do startowania demona w trybie
 standalone.
+
+%package ssl-standalone
+Summary:	standalone daemon configs for Qpopper with SSL on separate port (pop3s)
+Summary(pl):	Pliki konfiguracyjne do startowania Qpoppera w trybie standalone z obs³ug± SSL na oddzielnym porcie (pop3s)
+Group:		Networking/Daemons
+Prereq:		%{name}-common = %{version}-%{release}
+Prereq:		%{name}-standalone = %{version}-%{release}
+Prereq:		rc-scripts
+Prereq:		/sbin/chkconfig
+
+%description ssl-standalone
+Qpopper configs for running as a standalone daemon in SSL mode on
+separate port (pop3s).
+
+%description ssl-standalone -l pl
+Pliki konfiguracyjne Qpoppera do startowania demona w trybie
+standalone z obs³ug± SSL na oddzielnym porcie (pop3s).
 
 %prep
 %setup -q -n %{name}%{version}
@@ -188,6 +224,18 @@ if [ "$1" = "0" -a -f /var/lock/subsys/rc-inetd ]; then
 	/etc/rc.d/init.d/rc-inetd restart 1>&2
 fi
 
+%post ssl-inetd
+if [ -f /var/lock/subsys/rc-inetd ]; then
+	/etc/rc.d/init.d/rc-inetd restart 1>&2
+else
+	echo "Type \"/etc/rc.d/init.d/rc-inetd start\" to start inet server" 1>&2
+fi
+
+%postun ssl-inetd
+if [ "$1" = "0" -a -f /var/lock/subsys/rc-inetd ]; then
+	/etc/rc.d/init.d/rc-inetd restart 1>&2
+fi
+
 %post standalone
 /sbin/chkconfig --add qpopper
 if [ -f /var/lock/subsys/qpopper ]; then
@@ -202,6 +250,22 @@ if [ "$1" = "0" ]; then
 		/etc/rc.d/init.d/qpopper stop 1>&2
 	fi
 	/sbin/chkconfig --del qpopper
+fi
+
+%post ssl-standalone
+/sbin/chkconfig --add qpoppers
+if [ -f /var/lock/subsys/qpoppers ]; then
+	/etc/rc.d/init.d/qpoppers restart 1>&2
+else
+	echo "Run \"/etc/rc.d/init.d/qpoppers start\" to start Qpopper SSL daemon."
+fi
+
+%preun ssl-standalone
+if [ "$1" = "0" ]; then
+	if [ -f /var/lock/subsys/qpoppers ]; then
+		/etc/rc.d/init.d/qpoppers stop 1>&2
+	fi
+	/sbin/chkconfig --del qpoppers
 fi
 
 %files common
@@ -221,8 +285,17 @@ fi
 %attr(640,root,root) %config %verify(not size mtime md5) /etc/sysconfig/rc-inetd/qpopper
 %attr(0755,root,root) %{_sbindir}/qpopper
 
+%files ssl-inetd
+%defattr(644,root,root,755)
+%attr(640,root,root) %config %verify(not size mtime md5) /etc/sysconfig/rc-inetd/qpoppers
+
 %files standalone
 %defattr(644,root,root,755)
 %attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/sysconfig/qpopper
 %attr(754,root,root) /etc/rc.d/init.d/qpopper
 %attr(0755,root,root) %{_sbindir}/qpopperd
+
+%files ssl-standalone
+%defattr(644,root,root,755)
+%attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/sysconfig/qpoppers
+%attr(754,root,root) /etc/rc.d/init.d/qpoppers
