@@ -102,7 +102,7 @@ fi
 
 %postun
 if [ -f /var/lock/subsys/rc-inetd ]; then
-	/etc/rc.d/init.d/rc-inetd stop
+	/etc/rc.d/init.d/rc-inetd restart 1>&2
 fi
 
 %clean
