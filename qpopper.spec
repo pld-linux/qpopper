@@ -16,7 +16,7 @@ Patch3:		qpopper-homemaildir.patch
 URL:		http://www.eudora.com/freeware/
 Requires:	pam >= 0.66
 Requires:	inetdaemon
-Requires:	rc-inetd
+Prereq:		rc-inetd
 BuildRequires:	pam-devel
 BuildRequires:	gdbm-devel
 Obsoletes:	qpopper6
@@ -110,7 +110,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %attr(644,root, man) %{_mandir}/man8/*
 %attr(640,root,root) %config /etc/pam.d/qpopper
-%attr(640,root,root) %config /etc/sysconfig/rc-inetd/qpopper
+%attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/sysconfig/rc-inetd/qpopper
 %attr(700,mail,mail) %dir /etc/qpopper
 %attr(600,mail,mail) %config(noreplace) %verify(not size mtime md5) /etc/qpopper/pop.*
 %attr(640,root,mail) %config(noreplace) %verify(not size mtime md5) /etc/security/blacklist.qpopper
