@@ -36,7 +36,7 @@ modifications aren't officially supported by Qualcomm. All questions,
 complaints etc. according PAM support should be directed to Marek
 Habersack <grendel@vip.maestro.com.pl>)
 
-%description -l pl 
+%description -l pl
 Qpopper jest serwerem POP3 tworzonym przez QUALCOMM. Wymaga
 zdecydowanie mniej zasobów ni¿ inne serwery. Implementuje funkcje
 zostawiana wiadomo¶ci na serwerze (a tak¿e inne rozszerzenia POP3
@@ -61,7 +61,7 @@ autoconf
 	--enable-log-login \
 	--enable-ipv6
 
-%{__make} 
+%{__make}
 
 %install
 rm -rf $RPM_BUILD_ROOT
