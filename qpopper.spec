@@ -1,6 +1,6 @@
 #
 # Conditional build:
-# 	_with_mysql - mysql auth support
+# 	_with_mysql - MySQL auth support
 
 Summary:	POP3 daemon from Qualcomm
 Summary(pl):	Serwer POP3 tworzony przez Qualcomm
