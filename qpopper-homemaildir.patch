@@ -1,7 +1,7 @@
-diff -urN qpopper3.0.orig/common/genpath.c qpopper3.0/common/genpath.c
---- qpopper3.0.orig/common/genpath.c	Sun Mar 12 21:32:24 2000
-+++ qpopper3.0/common/genpath.c	Fri Apr 21 18:52:40 2000
-@@ -270,111 +270,109 @@
+diff -ur qpopper3.0.2.orig/common/genpath.c qpopper3.0.2/common/genpath.c
+--- qpopper3.0.2.orig/common/genpath.c	Wed May 10 00:35:11 2000
++++ qpopper3.0.2/common/genpath.c	Sat May 27 04:13:54 2000
+@@ -273,110 +273,108 @@
      struct passwd *pwp;
  
  
@@ -40,7 +40,7 @@ diff -urN qpopper3.0.orig/common/genpath.c qpopper3.0/common/genpath.c
 +				pszUser );
 +			return -1;
 +		    }
-+		    sprintf ( pszDrop + strlen(pszDrop), POP_DROP, pszUser );
++		    Qsprintf ( pszDrop + strlen(pszDrop), POP_DROP, pszUser );
 +		    break;
 +		case GNPH_TMP:    /* tmpxxxx    */
 +		    strncat ( pszDrop, ".", iDropLen - strlen(pszDrop) );
@@ -61,7 +61,7 @@ diff -urN qpopper3.0.orig/common/genpath.c qpopper3.0/common/genpath.c
 +				pszUser );
 +			return -1;
 +		    }
-+		    sprintf ( pszDrop + strlen(pszDrop), POP_DROP, pszUser );
++		    Qsprintf ( pszDrop + strlen(pszDrop), POP_DROP, pszUser );
 +		    break;
 +		case GNPH_PATH:  /* Just the path, M'am */
 +		    pszDrop [ strlen(pszDrop) -1 ] = '\0';
@@ -94,7 +94,7 @@ diff -urN qpopper3.0.orig/common/genpath.c qpopper3.0/common/genpath.c
 +				pszUser );
 +			return -1;
 +		    }
-+		    sprintf ( pszDrop + strlen(pszDrop), POP_DROP, pszUser );
++		    Qsprintf ( pszDrop + strlen(pszDrop), POP_DROP, pszUser );
 +		    break;
 +		case GNPH_TMP:    /* tmpxxxx    */
 +		    strncat ( pszDrop, ".", iDropLen - strlen(pszDrop) );
@@ -117,7 +117,7 @@ diff -urN qpopper3.0.orig/common/genpath.c qpopper3.0/common/genpath.c
      }
 -    strncpy ( pszDrop, pwp->pw_dir, iDropLen );
 -    strncat ( pszDrop, "/",         iDropLen - strlen(pszDrop) );
-     
+-    
 -    switch ( iWhich ) {
 -        case GNPH_SPOOL:  /* spool file */
 -            strncat ( pszDrop, HOMEDIRMAIL, iDropLen - strlen(pszDrop) );
@@ -133,7 +133,7 @@ diff -urN qpopper3.0.orig/common/genpath.c qpopper3.0/common/genpath.c
 -                        pszUser );
 -                return -1;
 -            }
--            sprintf ( pszDrop + strlen(pszDrop), POP_DROP, pszUser );
+-            Qsprintf ( pszDrop + strlen(pszDrop), POP_DROP, pszUser );
 -            break;
 -        case GNPH_TMP:    /* tmpxxxx    */
 -            strncat ( pszDrop, ".", iDropLen - strlen(pszDrop) );
@@ -154,7 +154,7 @@ diff -urN qpopper3.0.orig/common/genpath.c qpopper3.0/common/genpath.c
 -                        pszUser );
 -                return -1;
 -            }
--            sprintf ( pszDrop + strlen(pszDrop), POP_DROP, pszUser );
+-            Qsprintf ( pszDrop + strlen(pszDrop), POP_DROP, pszUser );
 -            break;
 -        case GNPH_PATH:  /* Just the path, M'am */
 -            pszDrop [ strlen(pszDrop) -1 ] = '\0';
@@ -188,7 +188,7 @@ diff -urN qpopper3.0.orig/common/genpath.c qpopper3.0/common/genpath.c
 -                        pszUser );
 -                return -1;
 -            }
--            sprintf ( pszDrop + strlen(pszDrop), POP_DROP, pszUser );
+-            Qsprintf ( pszDrop + strlen(pszDrop), POP_DROP, pszUser );
 -            break;
 -        case GNPH_TMP:    /* tmpxxxx    */
 -            strncat ( pszDrop, ".", iDropLen - strlen(pszDrop) );
@@ -210,16 +210,15 @@ diff -urN qpopper3.0.orig/common/genpath.c qpopper3.0/common/genpath.c
 -    }
 -    
 -#endif
--
+ 
      if ( DEBUGGING && bDebugging ) {
          logit ( fTrace, POP_DEBUG, HERE,
-                 "genpath %s (%d) for user %s returning %s", 
-diff -urN qpopper3.0.orig/man/popper.8 qpopper3.0/man/popper.8
---- qpopper3.0.orig/man/popper.8	Thu Jan  6 01:52:10 2000
-+++ qpopper3.0/man/popper.8	Fri Apr 21 19:01:07 2000
+diff -ur qpopper3.0.2.orig/man/popper.8 qpopper3.0.2/man/popper.8
+--- qpopper3.0.2.orig/man/popper.8	Wed May 10 00:35:13 2000
++++ qpopper3.0.2/man/popper.8	Sat May 27 04:09:33 2000
 @@ -17,12 +17,13 @@
  .SH NAME
- qpopper \-\- pop 3 server (v3.0b29)
+ qpopper \-\- pop 3 server (v3.0)
  .SH SYNOPSIS
 -.B /usr/local/lib/popper
 +.B /usr/sbin/qpopper
@@ -243,9 +242,9 @@ diff -urN qpopper3.0.orig/man/popper.8 qpopper3.0/man/popper.8
  .TP
  .B \-R
  Disables reverse lookups on client IP addresses.
-diff -urN qpopper3.0.orig/popper/pop_init.c qpopper3.0/popper/pop_init.c
---- qpopper3.0.orig/popper/pop_init.c	Tue Mar 14 23:53:49 2000
-+++ qpopper3.0/popper/pop_init.c	Fri Apr 21 18:57:46 2000
+diff -ur qpopper3.0.2.orig/popper/pop_init.c qpopper3.0.2/popper/pop_init.c
+--- qpopper3.0.2.orig/popper/pop_init.c	Wed May 10 00:35:20 2000
++++ qpopper3.0.2/popper/pop_init.c	Sat May 27 04:09:33 2000
 @@ -228,7 +228,7 @@
      /*  
       * Process command line arguments 
@@ -270,10 +269,10 @@ diff -urN qpopper3.0.orig/popper/pop_init.c qpopper3.0/popper/pop_init.c
  
              /*  Unknown option received */
          default:
-diff -urN qpopper3.0.orig/popper/popper.c qpopper3.0/popper/popper.c
---- qpopper3.0.orig/popper/popper.c	Wed Mar 15 00:21:38 2000
-+++ qpopper3.0/popper/popper.c	Fri Apr 21 18:53:51 2000
-@@ -77,6 +77,7 @@
+diff -ur qpopper3.0.2.orig/popper/popper.c qpopper3.0.2/popper/popper.c
+--- qpopper3.0.2.orig/popper/popper.c	Wed May 10 00:35:22 2000
++++ qpopper3.0.2/popper/popper.c	Sat May 27 04:09:33 2000
+@@ -80,6 +80,7 @@
  
  extern  state_table *   pop_get_command();
  int poptimeout = 0;
@@ -281,10 +280,10 @@ diff -urN qpopper3.0.orig/popper/popper.c qpopper3.0/popper/popper.c
  
  volatile int hangup = FALSE;
  
-diff -urN qpopper3.0.orig/popper/popper.h qpopper3.0/popper/popper.h
---- qpopper3.0.orig/popper/popper.h	Sat Apr  8 00:26:56 2000
-+++ qpopper3.0/popper/popper.h	Fri Apr 21 18:53:21 2000
-@@ -213,6 +213,7 @@
+diff -ur qpopper3.0.2.orig/popper/popper.h qpopper3.0.2/popper/popper.h
+--- qpopper3.0.2.orig/popper/popper.h	Wed May 10 00:35:22 2000
++++ qpopper3.0.2/popper/popper.h	Sat May 27 04:09:34 2000
+@@ -208,6 +208,7 @@
  #endif /* not BSD >= 199306 and not __USE_BSD */
  
  extern int               pop_timeout;
