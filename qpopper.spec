@@ -18,6 +18,7 @@ Requires:	inetdaemon
 Prereq:		rc-inetd
 BuildRequires:	pam-devel
 BuildRequires:	gdbm-devel
+BuildRequires:	autoconf
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 Obsoletes:	qpopper6
 Obsoletes:	solid-pop3d
