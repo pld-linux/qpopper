@@ -1,0 +1,12 @@
+diff -ur qpopper4.0.4.orig/man/popper.8 qpopper4.0.4/man/popper.8
+--- qpopper4.0.4.orig/man/popper.8	Tue Dec  3 18:42:29 2002
++++ qpopper4.0.4/man/popper.8	Tue Dec  3 19:19:45 2002
+@@ -19,7 +19,7 @@
+ .SH NAME
+ qpopper \-\- POP3 server (v4.0)
+ .SH SYNOPSIS
+-.B /usr/local/lib/popper
++.B /usr/sbin/qpopper(d)
+ [
+ .I [ address ]
+ .I [ ":" ]
