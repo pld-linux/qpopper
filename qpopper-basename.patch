@@ -1,0 +1,30 @@
+diff -ur qpopper4.0.4.orig/popper/pop_init.c qpopper4.0.4/popper/pop_init.c
+--- qpopper4.0.4.orig/popper/pop_init.c	Tue Dec  3 18:42:29 2002
++++ qpopper4.0.4/popper/pop_init.c	Tue Dec  3 19:16:10 2002
+@@ -95,6 +95,7 @@
+ #include <errno.h>
+ #include <stdio.h>
+ #include <stdlib.h>
++#include <libgen.h>
+ #include <sys/types.h>
+ 
+ #if HAVE_SYS_NETINET_IN_H
+@@ -491,6 +492,7 @@
+     int                     c;
+     int                     len;
+     extern char         *   optarg;
++    char                *   mynamec;
+     int                     options = 0;
+     int                     sp = 0;             /*  Socket pointer */
+     int                     pw_handling = 0;    /*  How clear text passwords handled */
+@@ -723,7 +725,9 @@
+     /*  
+      * Save my name in a global variable 
+      */
+-    p->myname         = argmessage [ 0 ];
++    mynamec           = strdup(argmessage [ 0 ]);
++    p->myname         = strdup(basename(mynamec));
++    free(mynamec);
+ 
+     /*  
+      * Open the log file 
