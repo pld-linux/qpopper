@@ -1,7 +1,7 @@
 Summary:	POP3 daemon from Qualcomm
 Summary(pl):	Serwer POP3 tworzony przez Qualcomm
 Name:		qpopper
-Version:	3.0
+Version:	3.0.2
 Release:	1
 Copyright:	BSD
 Group:		Networking/Daemons
