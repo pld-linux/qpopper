@@ -1,0 +1,83 @@
+--- qpopper4.0.5/samples/qpopper.config.orig	Thu Mar 13 09:13:18 2003
++++ qpopper4.0.5/samples/qpopper.config	Thu Mar 13 09:16:02 2003
+@@ -30,7 +30,7 @@
+ #
+ # Default: /var/spool/bulls
+ #
+-# set bulldir                  = "/var/spool/bulls"
++# set bulldir                  = "/var/mail/bulletins"
+ 
+ 
+ # Set TRUE to permit sessions to continue even if the
+@@ -89,7 +89,7 @@
+ #
+ # Default: none
+ #
+-# set config-file              = /etc/mail/pop/qpopper.config
++# set config-file              = /etc/mail/qpopper.config
+ 
+ 
+ # Enables debug logging.  Output is in syslog.  If this option is used,
+@@ -180,7 +180,7 @@
+ #
+ # Default: false
+ #
+-# set statistics               = false
++set statistics               = true
+ 
+ 
+ # Sets the timeout for network reads.  Qpopper terminates the
+@@ -364,7 +364,7 @@
+ #
+ # Default: none
+ #
+-# set tls-private-key-file     =
++# set tls-private-key-file     = /etc/qpopper/server.key
+ 
+ 
+ # Specifies the file which contains the server's TLS/SSL certificate.
+@@ -375,7 +375,7 @@
+ # Default: none
+ #
+ #
+-# set tls-server-cert-file     = /etc/mail/certs/hostname.cert
++# set tls-server-cert-file     = /etc/qpopper/server.crt
+ 
+ 
+ # When set, and Qpopper is being used with OpenSSL, Qpopper enables
+@@ -499,7 +499,7 @@
+ #
+ # Default: none
+ #
+-# set home-dir-mail            = ".mail"
++# set home-dir-mail            = "Mailbox"
+ 
+ 
+ # When set, instructs Qpopper to generate message unique identifiers
+@@ -518,7 +518,7 @@
+ #
+ # Default: false
+ #
+-# set UW-kluge                 = false
++# set UW-kluge                 = true
+ 
+ 
+ # When set, Qpopper keeps (does not delete) the '.user.pop' file (the
+@@ -593,7 +593,7 @@
+ #
+ # The default is determined at compile time.  
+ #
+-# set spool-dir                = /var/spool/mail
++# set spool-dir                = /var/mail
+ 
+ 
+ # If you do not want '.user.pop' (temporary drop files) to be in the
+@@ -696,7 +696,7 @@
+ # Default: determined at compile time, usually LOG_LOCAL0 or
+ # LOG_MAIL, depending on the operating system.
+ #
+-# set log-facility             = local1
++set log-facility             = mail
+ 
+ 
+ # When set, Qpopper logs successful authentications using the

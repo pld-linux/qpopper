@@ -1,0 +1,3473 @@
+diff -ruN qpopper4.0.4/README.MAILDIR qpopper4.0.4-mysql-0.6/README.MAILDIR
+--- qpopper4.0.4/README.MAILDIR	Wed Dec 31 16:00:00 1969
++++ qpopper4.0.4-mysql-0.6/README.MAILDIR	Tue Jan 14 12:24:21 2003
+@@ -0,0 +1,94 @@
++This is a quick readme for my maildir support in Qpopper 4.0.x (-mysql-0.6)
++
++QPOPPER WITH MAILDIR
++--------------------
++
++ENABLING
++--------
++Pass "--enable-maildrop-type=maildir" to the configure program
++If you want qpopper to NOT check for missing new/, cur/, and tmp/ diretories, 
++and create them, also pass "--disable-maildir-dir-check" to configure
++
++  OR
++
++In relevant config file set:
++ set maildrop-type     = maildir
++ set check-maildir-dir = true|false
++
++
++NOTES
++-----
++The Maildir feature is under development! I'm not a Maildir or qpopper
++programming guru, so until I mark it as stable, use at your own risk!
++
++UIDLs
++ If a X-UIDL header is found, it will be used. If one is not found, a UIDL
++ will be generated from the message's filename. UIDL and STATUS headers will
++ NOT be written to the message file no matter what. Maildir protocol requires
++ that a message NOT be changed after it is delivered.
++p->drop
++ This was a file descriptor to the maildrop for the mbox setup. Under 
++ a Maildir setup, it is not used in the same way. It is only defined when a 
++ function directly asks for it. i.e. it is set/open to the current filename/
++ messaage wishing to be accessed, and immediately closed when finished.
++BULLETINS
++ These are not implemented yet for a Maildir setup.
++
++FILES I'VE CHANGED
++------------------
++popper.h
++pop_config.c
++pop_dropcopy.c
++pop_init.c
++pop_list.c
++pop_send.c
++pop_uidl.c
++pop_updt.c
++maildir.c
++maildir.h
++xtnd_xlst.c
++config.h.in
++configure
++configure.in
++
++OTHER STUFF
++-----------
++New p-> struct options
++
++    /* CYGNUS - What kind of maildrop? mbox/maildir */
++    maildrop_type       MaildropType;
++    /* CYGNUS - Check and create maildir dirs */
++    BOOL                bCheck_maildir_dir;
++
++New MsgInfoList struct options
++
++    char                filename[PATH_MAX];
++
++offset flag will be always 0 under a maildir setup
++
++Added 2 config file options:
++    { "check-maildir-dir" , CfgBool , CfgResNone, kCHECK_MAILDIR_DIR   },
++    { "maildrop-type"     , CfgMnem , CfgResUser, kMAILDROP_TYPE       },
++ 
++
++New configure options
++
++--enable-maildrop-type=mbox
++ sets MAILDROP_TYPE to MBOX_DROP
++--enable-maildrop-type=maildir
++ sets MAILDROP_TYPE to MAILDIR_DROP
++if none specified
++ set MAILDROP_TYPE to MBOX_DROP
++--disable-maildir-dir-check
++ set DONT_CHECK_MAILDIR_DIR
++
++add to config.h.in
++
++#define MBOX_DROP    0
++#define MAILDIR_DROP 1
++
++
++
++-Tony
++thelittleprince@asteroid-b612.org
++
+diff -ruN qpopper4.0.4/README.MYSQL qpopper4.0.4-mysql-0.6/README.MYSQL
+--- qpopper4.0.4/README.MYSQL	Wed Dec 31 16:00:00 1969
++++ qpopper4.0.4-mysql-0.6/README.MYSQL	Tue Jan 14 12:24:21 2003
+@@ -0,0 +1,201 @@
++This is a quick readme for my mysql support in Qpopper 4.0.x (-mysql-0.6)
++
++Sample mysql config directives are stored in the mysql-popper.conf 
++file in the main directory.
++
++Configure directives relative to mysql support are:
++ --with-mysqllibpath=path
++		Set the mysql library path [/usr/lib/mysql]
++ --with-mysqlincludepath=path
++		Set the mysql include path [/usr/include/mysql]
++ --enable-mysql
++		compile in mysql authentication
++ --with-mysqlconfig=path
++		Set the mysql-popper.conf file path [/etc/mysql-popper.conf]
++ --enable-log-login-mysql
++	Log successful user authentications into mysql database
++
++
++For --enable-log-login-mysql, currently the table and field definitions
++are hardcoded. It is defined in mysql as follows where ip is the client IP
++and ts is the current timestamp in unix time:
++
++CREATE TABLE relay_ip (
++  ip char(15) NOT NULL default '',
++  ts int(11) NOT NULL default '0',
++  KEY ip(ip)
++);
++
++The authentication table should look something like this:
++The only REQUIRED fields are username and password.
++In a virtual domain setup, the username field should contain
++ONLY the username, not username@userdomain.com. userdomain.com
++goes in the domain field.
++The password field can contain many types of encoded passwords.
++The supported types are:
++cleartext (just plain text in mysql), 
++crypt (made with ENCRYPT('userpassword') in mysql), 
++md5 (made with MD5('userpassword') in mysql), and
++mysql (made with PASSWORD('userpassword') in mysql).
++
++The other fields you only need to create if you query for said fields in 
++your mysql-popper.conf configuration.
++
++CREATE TABLE email (
++  username char(128) NOT NULL,
++  domain char(64),
++  uid int(10),
++  gid int(10),
++  status int(2) DEFAULT '0',
++  shell char(127),
++  password char(32) NOT NULL,
++  spool char(255)
++);
++
++How to populate the auth. table with users is beyond the scope of this 
++document. Reference your MySQL docs for the SQL commands to do this.
++But here's a quick example for an email of thelittleprince@asteroid-b612.org 
++using ALL mysql fields.
++ INSERT into email VALUES (
++  'thelittleprince',
++  'asteroid-b612.org',
++  '500',
++  '100',
++  '1',
++  '/bin/false',
++  ENCRYPT('mypassword'),
++  '/var/spool/mail/asteroid-b612.org/thelittleprince'
++ );
++
++
++DIRECTORY STRUCTURES (PLEASE READ!):
++When you use mysql, either with virtual or non-virtual set ups,
++spool directory or HOMEDIRMAIL set ups, some of the directory 
++paths are constructed differently. Here is a run-down of how paths 
++are constructed with this patch:
++In these examples POP_DROP_DIR is represented as /var/tmp/.pop
++POP_CACHE_DIR as /var/tmp/.cache
++POP_MAILDIR as /var/spool/mail
++and MYSQL_DEFAULT_HOMEDIR as /home
++
++NON-VIRTUAL (i.e. USER user)
++ POP_MAILDIR SETUP:
++	GNPH_PATH           : /var/spool/mail
++	GNPH_PATH   (HASHED): /var/spool/mail/u/s
++	GNPH_SPOOL          : /var/spool/mail/user
++	GNPH_SPOOL  (HASHED): /var/spool/mail/u/s/user
++	GNPH_OLDPOP         : /var/spool/mail/.user.pop
++	GNPH_OLDPOP (HASHED): /var/spool/mail/u/s/.user.pop
++	GNPH_POP            : /var/tmp/.pop/.user.pop
++	GNPH_POP    (HASHED): /var/tmp/.pop/u/s/.user.pop
++	GNPH_CACHE          : /var/tmp/.cache/.user.cache
++	GNPH_CACHE  (HASHED): /var/tmp/.cache/u/s/.user.cache
++ HOMEDIRMAIL SETUP:
++	GNPH_PATH           : /home/user
++	GNPH_PATH   (HASHED): /home/u/s/user
++	GNPH_SPOOL          : /home/user/mbox
++	GNPH_SPOOL  (HASHED): /home/u/s/user/mbox
++	GNPH_OLDPOP         : /var/spool/mail/.user.pop
++	GNPH_OLDPOP (HASHED): /var/spool/mail/u/s/.user.pop
++	GNPH_POP            : /var/tmp/.pop/.user.pop
++	GNPH_POP    (HASHED): /var/tmp/.pop/u/s/.user.pop
++	GNPH_CACHE          : /var/tmp/.cache/.user.cache
++	GNPH_CACHE  (HASHED): /var/tmp/.cache/u/s/.user.cache
++ SPECIFIEDSPOOL SETUP (MysqlSpoolField/spool-file):
++  In this setup hashed and non-hashed are the same for GNPH_PATH 
++  and GNPH_SPOOL, beacuse you are specifying in the db's table field 
++  the hashing structure yourself, so it is not calculated.
++	GNPH_PATH           : specifiedspool minus last /'d path arg
++	GNPH_SPOOL          : specifiedspool
++	GNPH_OLDPOP         : /var/spool/mail/.user.pop
++	GNPH_OLDPOP (HASHED): /var/spool/mail/u/s/.user.pop
++	GNPH_POP            : /var/tmp/.pop/.user.pop
++	GNPH_POP    (HASHED): /var/tmp/.pop/u/s/.user.pop
++	GNPH_CACHE          : /var/tmp/.cache/.user.cache
++	GNPH_CACHE  (HASHED): /var/tmp/.cache/u/s/.user.cache
++
++VIRTUAL SETUP (i.e. USER user@domain.com, you set one of the
++	       virtual domain options in mysql-popper.conf)
++ POP_MAILDIR SETUP:
++	GNPH_PATH           : /var/spool/mail/domain.com
++	GNPH_PATH   (HASHED): /var/spool/mail/domain.com/u/s
++	GNPH_SPOOL          : /var/spool/mail/domain.com/user
++	GNPH_SPOOL  (HASHED): /var/spool/mail/domain.com/u/s/user
++	GNPH_OLDPOP         : /var/spool/mail/domain.com/.user.pop
++	GNPH_OLDPOP (HASHED): /var/spool/mail/domain.com/u/s/.user.pop
++	GNPH_POP            : /var/tmp/.pop/.user@domain.com.pop
++	GNPH_POP    (HASHED): /var/tmp/.pop/u/s/.user@domain.com.pop
++	GNPH_CACHE          : /var/tmp/.cache/.user@domain.com.cache
++	GNPH_CACHE  (HASHED): /var/tmp/.cache/u/s/.user@domain.com.cache
++ HOMEDIRMAIL SETUP:
++	GNPH_PATH           : /home/domain.com/user
++	GNPH_PATH   (HASHED): /home/domain.com/u/s/user
++	GNPH_SPOOL          : /home/domain.com/user/mbox
++	GNPH_SPOOL  (HASHED): /home/domain.com/u/s/user/mbox
++	GNPH_OLDPOP         : /var/spool/mail/domain.com/.user.pop
++	GNPH_OLDPOP (HASHED): /var/spool/mail/domain.com/u/s/.user.pop
++	GNPH_POP            : /var/tmp/.pop/.user@domain.com.pop
++	GNPH_POP    (HASHED): /var/tmp/.pop/u/s/.user@domain.com.pop
++	GNPH_CACHE          : /var/tmp/.cache/.user@domain.com.cache
++	GNPH_CACHE  (HASHED): /var/tmp/.cache/u/s/.user@domain.com.cache
++ SPECIFIEDSPOOL SETUP (MysqlSpoolField/spool-file):
++  In this setup hashed and non-hashed are the same for GNPH_PATH 
++  and GNPH_SPOOL, beacuse you are specifying in the db's table field 
++  the hashing structure yourself, so it is not calculated.
++	GNPH_PATH           : specifiedspool minus last /'d path arg
++	GNPH_SPOOL          : specifiedspool
++	GNPH_OLDPOP         : /var/spool/mail/domain.com/.user.pop
++	GNPH_OLDPOP (HASHED): /var/spool/mail/domain.com/u/s/.user.pop
++	GNPH_POP            : /var/tmp/.pop/.user@domain.com.pop
++	GNPH_POP    (HASHED): /var/tmp/.pop/u/s/.user@domain.com.pop
++	GNPH_CACHE          : /var/tmp/.cache/.user@domain.com.cache
++	GNPH_CACHE  (HASHED): /var/tmp/.cache/u/s/.user@domain.com.cache
++
++USER CONFIG OPTIONS:
++ POP_MAILDIR SETUP:
++	NON-VIRTUAL:
++	/var/spool/mail/.user.qpopper-options
++	VIRTUAL:
++	/var/spool/mail/.user@domain.com.qpopper-options
++ HOMEDIRMAIL SETUP:
++	NON-VIRTUAL:
++	/home/user/.qpopper-options
++	/home/u/s/user/.qpopper-options
++	VIRTUAL:
++	/home/domain.com/user/.qpopper-options
++	/home/domain.com/u/s/user/.qpopper-options
++
++If you're using HOMEDIRMAIL, the DEFAULT_MYSQL_HOMEDIR variable
++in pop_user.c controls the base home directory for users. The default 
++is "/home"
++
++HOW THE MYSQL AUTHENTICATION WORKS:
++In pop_user() a mysql connection and query is made with the username
++entered as the search field (and the user's domain in a virtual setup).
++The resulting data is stored in the passwd structure that would normally
++be populated by getpwnam().
++In pop_pass() the cached DB password in the passwd structure is compared
++against the entered password, using whatever method is specified in the
++MysqlAuthPasswordMethod config file option.
++On success and enabling of log-login-mysql, an additional mysql connection
++is made to the above table and appended/updated with the client's ip
++and the current unix timestamp.
++
++EXTRA NOTES:
++If using the log-login-mysql option in conjunction with your MTA for
++host relay checking, i'm told this is the proper relay config for Exim:
++
++host_accept_relay = "localhost:mysql;SELECT ip FROM
++relay_ip WHERE ip='${sender_host_address}'"
++
++or if you want to only select on ips less than 180 secs (3 min) old..
++
++host_accept_relay = "localhost:mysql;SELECT ip FROM
++relay_ip WHERE ip='${sender_host_address}' AND
++((UNIX_TIMESTAMP() - 180) < ts)"
++
++
++
++-Tony
++thelittleprince@asteroid-b612.org
++
+diff -ruN qpopper4.0.4/config.h.in qpopper4.0.4-mysql-0.6/config.h.in
+--- qpopper4.0.4/config.h.in	Wed May  2 18:12:26 2001
++++ qpopper4.0.4-mysql-0.6/config.h.in	Tue Jan 14 12:24:21 2003
+@@ -286,12 +286,26 @@
+ /* Define to enable SCRAM */
+ #undef SCRAM
+ 
++/* Define to enable MYSQL_CONF */
++#undef MYSQL_CONF
++
+ /* Define the POPUID as pop user ID which acts as admin for POPUSERS */
+ #undef POPUID
+ 
+ /* Define if you want successful authentications to be logged */
+ #undef LOG_LOGIN
+ 
++/*
++ * Use mysql database authentication
++ */
++#undef MYSQLAUTH
++
++/*
++ * Define if you want successful authentications to be
++ * logged to a mysql database
++ */
++#undef LOG_LOGIN_MYSQL
++
+ /* 
+  * Define if you want to automatically delete RETRd messages.
+  * Caution: This could cause lost mail.  Be sure users are
+@@ -587,5 +601,21 @@
+  * 0=default (pool all writes); 1=tls (pool only under tls); 2=never
+  */
+ #undef CHUNKY_WRITES
++
++/*
++ * Define if the user new, cur, tmp maildir directories already exist.
++ * Qpopper will not check for or create the directories when this is defined.
++ */
++#undef DONT_CHECK_MAILDIR_DIR
++
++#define MBOX_DROP    0
++#define MAILDIR_DROP 1
++/*
++ * Define to set the type of maildrop we will use.
++ * MBOX_DROP is mbox type
++ * MAILDIR_DROP is Maildir type
++ * default is MBOX_DROP
++ */
++#undef MAILDROP_TYPE
+ 
+ #include "conf.h"  /* some macros */
+diff -ruN qpopper4.0.4/configure qpopper4.0.4-mysql-0.6/configure
+--- qpopper4.0.4/configure	Mon Nov  5 16:45:26 2001
++++ qpopper4.0.4-mysql-0.6/configure	Tue Jan 14 12:24:21 2003
+@@ -24,6 +24,16 @@
+ ac_help="$ac_help
+  --enable-low-debug       Low-level heavy-duty debugging only."
+ ac_help="$ac_help
++ --with-mysqllibpath=path Set the mysql library path [/usr/lib/mysql]"
++ac_help="$ac_help
++ --with-mysqlincludepath=path Set the mysql include path [/usr/include/mysql]"
++ac_help="$ac_help
++ --enable-mysql compile in mysql authentication"
++ac_help="$ac_help
++ --with-mysqlconfig=path Set the mysql-popper.conf file path [/etc/mysql-popper.conf]"
++ac_help="$ac_help
++ --enable-log-login-mysql       Log successful user authentications into mysql database "
++ac_help="$ac_help
+  --enable-servermode      Enable SERVER_MODE "
+ ac_help="$ac_help
+  --enable-bulletins=directory 
+@@ -56,6 +66,9 @@
+ ac_help="$ac_help
+  --enable-hash-spool=1|2  Enable hashed spool directories [2] "
+ ac_help="$ac_help
++ --enable-maildrop-type=mbox|maildir
++                          Set the mailbox type we read from [mbox] "
++ac_help="$ac_help
+  --enable-home-dir-mail=spool file
+                           Mail spool file is in home directory [.mail] "
+ ac_help="$ac_help
+@@ -128,6 +141,9 @@
+ ac_help="$ac_help
+  --disable-hash-dir-check Don't check if hashed spool dirs exist "
+ ac_help="$ac_help
++ --disable-maildir-dir-check
++                          Don't check if maildir dirs exist "
++ac_help="$ac_help
+  --enable-chunky-writes=0|1|2
+                           Set default network write pooling [0] "
+ ac_help="$ac_help
+@@ -1493,6 +1509,187 @@
+ fi
+ 
+ 
++# Check whether --with-mysqllibpath or --without-mysqllibpath was given.
++if test "${with_mysqllibpath+set}" = set; then
++  withval="$with_mysqllibpath"
++  mysqllibpath=$withval
++else
++  mysqllibpath="/usr/lib/mysql"
++fi
++
++# Check whether --with-mysqlincludepath or --without-mysqlincludepath was given.
++if test "${with_mysqlincludepath+set}" = set; then
++  withval="$with_mysqlincludepath"
++  mysqlincludepath=$withval
++else
++  mysqlincludepath="/usr/include/mysql"
++fi
++
++
++# Check whether --enable-mysql or --disable-mysql was given.
++if test "${enable_mysql+set}" = set; then
++  enableval="$enable_mysql"
++  mysql="$enableval"
++else
++  mysql="no"
++fi
++
++if test "$mysql" != "no"; then
++       OS_DEFS="$OS_DEFS -I$mysqlincludepath"
++       LDFLAGS="$LDFLAGS -L$mysqllibpath"
++       echo $ac_n "checking for mysql_real_connect in -lmysqlclient""... $ac_c" 1>&6
++echo "configure:1597: checking for mysql_real_connect in -lmysqlclient" >&5
++ac_lib_var=`echo mysqlclient'_'mysql_real_connect | sed 'y%./+-%__p_%'`
++if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
++  echo $ac_n "(cached) $ac_c" 1>&6
++else
++  ac_save_LIBS="$LIBS"
++LIBS="-lmysqlclient "-lm" $LIBS"
++cat > conftest.$ac_ext <<EOF
++#line 1605 "configure"
++#include "confdefs.h"
++/* Override any gcc2 internal prototype to avoid an error.  */
++/* We use char because int might match the return type of a gcc2
++    builtin and then its argument prototype would still apply.  */
++char mysql_real_connect();
++
++int main() {
++mysql_real_connect()
++; return 0; }
++EOF
++if { (eval echo configure:1616: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
++  rm -rf conftest*
++  eval "ac_cv_lib_$ac_lib_var=yes"
++else
++  echo "configure: failed program was:" >&5
++  cat conftest.$ac_ext >&5
++  rm -rf conftest*
++  eval "ac_cv_lib_$ac_lib_var=no"
++fi
++rm -f conftest*
++LIBS="$ac_save_LIBS"
++
++fi
++if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
++  echo "$ac_t""yes" 1>&6
++  LIBS="$LIBS -L$mysqllibpath -lmysqlclient"
++else
++  echo "$ac_t""no" 1>&6
++{ echo "configure: error: "libmysqlclient not found"" 1>&2;
++  echo "Try specifying your mysql lib path with --with-mysqllibpath=path" 1>&2;
++  exit 1; }
++fi
++
++       echo $ac_n "checking for sin in -lm""... $ac_c" 1>&6
++echo "configure:1638: checking for sin in -lm" >&5
++ac_lib_var=`echo m'_'sin | sed 'y%./+-%__p_%'`
++if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
++  echo $ac_n "(cached) $ac_c" 1>&6
++else
++  ac_save_LIBS="$LIBS"
++LIBS="-lm  $LIBS"
++cat > conftest.$ac_ext <<EOF
++#line 1646 "configure"
++#include "confdefs.h"
++/* Override any gcc2 internal prototype to avoid an error.  */
++/* We use char because int might match the return type of a gcc2
++    builtin and then its argument prototype would still apply.  */
++char sin();
++
++int main() {
++sin()
++; return 0; }
++EOF
++if { (eval echo configure:1657: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
++  rm -rf conftest*
++  eval "ac_cv_lib_$ac_lib_var=yes"
++else
++  echo "configure: failed program was:" >&5
++  cat conftest.$ac_ext >&5
++  rm -rf conftest*
++  eval "ac_cv_lib_$ac_lib_var=no"
++fi
++rm -f conftest*
++LIBS="$ac_save_LIBS"
++
++fi
++if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
++  echo "$ac_t""yes" 1>&6
++    ac_tr_lib=HAVE_LIB`echo m | sed -e 's/[^a-zA-Z0-9_]/_/g' \
++    -e 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/'`
++  cat >> confdefs.h <<EOF
++#define $ac_tr_lib 1
++EOF
++
++  LIBS="-lm $LIBS"
++
++else
++  echo "$ac_t""no" 1>&6
++fi
++
++# end of enable-mysql checks
++fi
++
++# Check whether --with-mysqlconfig or --without-mysqlconfig was given.
++if test "${with_mysqlconfig+set}" = set; then
++  withval="$with_mysqlconfig"
++  mysqlconfig=$withval
++else
++  mysqlconfig="no"
++fi
++
++if test "$mysqlconfig" != "no"; then
++    cat >> confdefs.h <<EOF
++#define MYSQL_CONF "$mysqlconfig"
++EOF
++
++else
++    cat >> confdefs.h <<EOF
++#define MYSQL_CONF "/etc/mysql-popper.conf"
++EOF
++
++fi
++
++
++
++# Check whether --enable-log-login-mysql or --disable-log-login-mysql was given.
++if test "${enable_log_login_mysql+set}" = set; then
++  enableval="$enable_log_login_mysql"
++  logloginmysqlmode="$enableval"
++else
++  logloginmysqlmode="no"
++fi
++
++if test "$logloginmysqlmode" != "no"; then
++    echo "$ac_t""Enabled LOG-LOGIN-MYSQL" 1>&6
++    cat >> confdefs.h <<\EOF
++#define LOG_LOGIN_MYSQL 1
++EOF
++
++fi
++
++
++# Check whether --enable-maildrop-type was given.
++if test "${enable_maildrop_type+set}" = set; then
++  enableval="$enable_maildrop_type"
++  maildroptype="$enableval"
++else
++  maildroptype="mbox"
++fi
++
++if test "$maildroptype" = "maildir"; then
++    echo "$ac_t""Enabled Maildir mailbox type" 1>&6
++    cat >> confdefs.h <<\EOF
++#define MAILDROP_TYPE MAILDIR_DROP
++EOF
++else
++    echo "$ac_t""Enabled mbox mailbox type" 1>&6
++    cat >> confdefs.h <<\EOF
++#define MAILDROP_TYPE MBOX_DROP
++EOF
++fi
++
++
+ # Check whether --enable-servermode or --disable-servermode was given.
+ if test "${enable_servermode+set}" = set; then
+   enableval="$enable_servermode"
+@@ -2590,6 +2787,23 @@
+ fi
+ 
+ 
++# Check whether --enable-maildir-dir-check or --disable-maildir-dir-check was given.
++if test "${enable_maildir_dir_check+set}" = set; then
++  enableval="$enable_maildir_dir_check"
++  checkmaildirdir="$enableval"
++else
++  checkmaildirdir="yes"
++fi
++
++if test "$checkmaildirdir" != "yes"; then
++    echo "$ac_t""Will NOT check for or create maildir spool directories" 1>&6
++    cat >> confdefs.h <<\EOF
++#define DONT_CHECK_MAILDIR_DIR 1
++EOF
++
++fi
++
++
+ # Check whether --enable-chunky-writes or --disable-chunky-writes was given.
+ if test "${enable_chunky_writes+set}" = set; then
+   enableval="$enable_chunky_writes"
+@@ -3533,6 +3747,50 @@
+ DBM_H="no" 
+ fi
+ 
++# check for mysql.h
++if test "$mysql" != "no"; then
++ac_hdr="$mysqlincludepath/mysql.h"
++ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
++echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
++echo "configure:3755: checking for $ac_hdr" >&5
++if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
++  echo $ac_n "(cached) $ac_c" 1>&6
++else
++  cat > conftest.$ac_ext <<EOF
++#line 3760 "configure"
++#include "confdefs.h"
++#include <$ac_hdr>
++EOF
++ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
++{ (eval echo configure:3765: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
++ac_err=`grep -v '^ *+' conftest.out`
++if test -z "$ac_err"; then
++  rm -rf conftest*
++  eval "ac_cv_header_$ac_safe=yes"
++else
++  echo "$ac_err" >&5
++  echo "configure: failed program was:" >&5
++  cat conftest.$ac_ext >&5
++  eval "ac_cv_header_$ac_safe=no"
++fi
++rm -f conftest*
++fi
++if eval "test \"`echo '$ac_cv_header_'$ac_safe`\" = yes"; then
++  echo "$ac_t""yes" 1>&6
++else
++  echo "$ac_t""no" 1>&6
++{ echo "configure: error: "mysql.h not found"" 1>&2;
++  echo "Try specifying your mysql include path with --with-mysqlincludepath=path" 1>&2;
++  exit 1; }
++fi
++
++       echo "$ac_t""Turning on mysql authentication" 1>&6
++       cat >> confdefs.h <<\EOF
++#define MYSQLAUTH 1
++EOF
++
++fi
++# check for mysql.h
+ 
+ 
+ 
+diff -ruN qpopper4.0.4/configure.in qpopper4.0.4-mysql-0.6/configure.in
+--- qpopper4.0.4/configure.in	Wed May  2 18:12:26 2001
++++ qpopper4.0.4-mysql-0.6/configure.in	Tue Jan 14 12:24:21 2003
+@@ -364,6 +364,38 @@
+ fi
+ 
+ 
++AC_ARG_WITH(mysqllibpath, [ --with-mysqllibpath=path Set the mysql library path [/usr/lib/mysql]], mysqllibpath=$withval, mysqllibpath="/usr/lib/mysql")
++AC_ARG_WITH(mysqlincludepath, [ --with-mysqlincludepath=path Set the mysql include path [/usr/include/mysql]], mysqlincludepath=$withval, mysqlincludepath="/usr/include/mysql")
++
++AC_ARG_ENABLE(mysql, [ --enable-mysql compile in mysql authentication],
++        mysql="$enableval", mysql="no")
++if test "$mysql" != "no"; then
++       OS_DEFS="$OS_DEFS -I$mysqlincludepath"
++       LDFLAGS="$LDFLAGS -L$mysqllibpath"
++       AC_CHECK_LIB(mysqlclient, mysql_connect,
++               LIBS="$LIBS -L$mysqllibpath -lmysqlclient",
++               AC_MSG_ERROR("libmysqlclient not found"),"-lm")
++       AC_CHECK_LIB(m, sin)
++       AC_MSG_RESULT(Turning on mysql authentication)
++       AC_DEFINE(MYSQLAUTH)
++fi
++
++AC_ARG_WITH(mysqlconfig, [ --with-mysqlconfig=path Set the mysql-popper.conf file path [/etc/mysql-popper.conf]], mysqlconfig=$withval, mysqlconfig="no")
++if test "$mysqlconfig" != "no"; then
++    AC_DEFINE_UNQUOTED(MYSQL_CONF,"$mysqlconfig")
++else
++    AC_DEFINE_UNQUOTED(MYSQL_CONF,"/etc/mysql-popper.conf")
++fi
++
++
++AC_ARG_ENABLE(log-login-mysql, [ --enable-log-login-mysql       Log successful user authentications into mysql database ],
++              logloginmysqlmode="$enableval", logloginmysqlmode="no")
++if test "$logloginmysqlmode" != "no"; then
++    AC_MSG_RESULT(Enabled LOG-LOGIN-MYSQL)
++    AC_DEFINE(LOG_LOGIN_MYSQL)
++fi
++
++
+ AC_ARG_ENABLE(servermode, [ --enable-servermode      Enable SERVER_MODE ], 
+               servermode="$enableval", servermode="no")
+ if test "$servermode" != "no"; then
+@@ -522,6 +554,18 @@
+ fi
+ 
+ 
++AC_ARG_ENABLE(maildrop-type, [ --enable-maildrop-type=mbox|maildir
++                          Set the mailbox type we read from [mbox] ], 
++              maildroptype="$enableval", maildroptype="mbox")
++if test "$maildroptype" = "maildir"; then
++        AC_MSG_RESULT(Using Maildir mailbox type)
++        AC_DEFINE_UNQUOTED(MAILDROP_TYPE, "MAILDIR_DROP")
++else  
++        AC_MSG_RESULT(Using mbox mailbox type)
++        AC_DEFINE_UNQUOTED(MAILDROP_TYPE, "MBOX_DROP") 
++fi
++
++
+ AC_ARG_ENABLE(hash-spool, [ --enable-hash-spool=1|2  Enable hashed spool directories [2] ], 
+               hashspool="$enableval", hashspool="no")
+ if test "$hashspool" != "no"; then
+@@ -851,6 +895,14 @@
+ if test "$checkhashdir" != "yes"; then
+     AC_MSG_RESULT(Will NOT check for or create hashed spool directories)
+     AC_DEFINE(DONT_CHECK_HASH_SPOOL_DIR)
++fi
++
++
++AC_ARG_ENABLE(maildir-dir-check, [ --disable-maildir-dir-check Don't check if maildir spool dirs exist ],
++              checkmaildirdir="$enableval", checkmaildirdir="yes")
++if test "$checkmaildirdir" != "yes"; then
++    AC_MSG_RESULT(Will NOT check for or create maildir spool directories)
++    AC_DEFINE(DONT_CHECK_MAILDIR_DIR)
+ fi
+ 
+ 
+diff -ruN qpopper4.0.4/doc/Changes.MAILDIR qpopper4.0.4-mysql-0.6/doc/Changes.MAILDIR
+--- qpopper4.0.4/doc/Changes.MAILDIR	Wed Dec 31 16:00:00 1969
++++ qpopper4.0.4-mysql-0.6/doc/Changes.MAILDIR	Tue Jan 14 12:24:21 2003
+@@ -0,0 +1,5 @@
++   Last updated: 9 May 2002
++
++Changes from 0.4 to 0.5:
++---------------------------
++ 1.  Added preliminary support for Maildir maildrops.
+diff -ruN qpopper4.0.4/doc/Changes.MYSQL qpopper4.0.4-mysql-0.6/doc/Changes.MYSQL
+--- qpopper4.0.4/doc/Changes.MYSQL	Wed Dec 31 16:00:00 1969
++++ qpopper4.0.4-mysql-0.6/doc/Changes.MYSQL	Tue Jan 14 12:24:21 2003
+@@ -0,0 +1,66 @@
++   Last updated: 10 Jan 2003
++
++Changes from 0.5 to 0.6:
++---------------------------
++ 1.  Fixed problem where the configure script would not find 
++     mysql_connect with MySQL 4.x. Changed it to check for 
++     mysql_real_connect instead.
++ 2.  Added support for defining the mail spool per-user in mysql table.
++     Use optional "MysqlSpoolField" variable in mysql-popper.conf, or 
++     optional "spool-file" variable in user config
++     Added new p-> struct option p->spool_file to hold this.
++     See README.MYSQL for more details
++ 3.  Put a check in the configure script for mysql.h
++ 4.  Changed the sample mysql row insert in Changes.MYSQL to show that 
++     you CAN give the domain, uid, gid, status, and spool fields NULL 
++     data values (for future use), but don't expect qpopper not to choke 
++     if you tell it to look for data in these fields, and no data is 
++     present. Except for spool. If you define the spool field and leave 
++     the field's value NULL for a user, the server will generate the spool 
++     path, while it will still use a value if it's not NULL/specified.
++ 5.  Changed the defaults for --with-mysqllibpath and 
++     --with-mysqlincludepath, to /usr/lib/mysql and /usr/include/mysql, 
++     respectively
++
++Changes from 0.4 to 0.5:
++---------------------------
++ 1.  Added prelim. support for reading from Maildir-style mailboxes
++ 2.  Fixed --with-mysqlincludepath= parsing in configure.in
++ 3.  Gave mysql pop_log()s a POP_PRIORITY level instead of POP_FAILURE
++
++Changes from 0.3 to 0.4:
++---------------------------
++ 1.  Added ability to do HOMEDIRMAIL with mysql authentication.
++     "/home" is the default base path for the user's home directory 
++     (since we're not using /etc/passwd).
++     You can change this by modifying MYSQL_DEFAULT_HOMEDIR in pop_user.c
++     You can use this with a virtual setup and hashing.
++     Example directory paths are /home/user, /home/u/s/user, /home/domain.com/
++     user, /home/domain.com/u/s/user  (see README.MYSQL for all of them)
++ 2.  Changed error message for bad sql fetch to say "Authentication query 
++     failed, account may not exist." instead of saying that the password for
++     that account is incorrect.
++ 3.  Added "md5" and "mysql" methods for password checking
++     (for the MysqlAuthPasswordMethod option). Also added "any" method which
++     will check all methods (since now there are more than 2). The "both"
++     method can still be used. I left it in for compatibility.
++ 4.  Added hashing and virtual cases for user-opt/spool-opt paths 
++     in pop_config.c
++ 5.  Updated README.MYSQL
++
++Changes from 0.2 to 0.3:
++---------------------------
++ 1.  Fixed glitch in pop_user.c, where string copied to p->user for MYSQLAUTH
++     contained domain name, when it shouldn't have.
++ 2.  Fixed compile problem in genpath.c, when qpopper not compiled with
++     MYSQLAUTH
++
++Changes from 0.1 to 0.2:
++---------------------------
++ 1.  Added debugging calls for mysql auth.
++ 2.  Added config variables MysqlAuthDomainField and MysqlAuthDefaultDomain
++     to mysql-popper.conf
++ 3.  Added pre-release virtual domain support.
++ 4.  Updated README.MYSQL
++ 5.  Created Changes.MYSQL
++
+diff -ruN qpopper4.0.4/example-maildir-configure.txt qpopper4.0.4-mysql-0.6/example-maildir-configure.txt
+--- qpopper4.0.4/example-maildir-configure.txt	Wed Dec 31 16:00:00 1969
++++ qpopper4.0.4-mysql-0.6/example-maildir-configure.txt	Tue Jan 14 12:24:21 2003
+@@ -0,0 +1,12 @@
++# For Maildir delivery under the normal system spool
++# e.g. /var/mail/user/new, /var/mail/user/cur, etc.. try
++./configure  --enable-standalone --enable-servermode \
++--enable-maildrop-type=maildir --enable-debugging
++
++# For Maildir delivery under a user's home directory
++# e.g. /home/user/Maildir/new, /home/user/Maildir/cur, etc.. try
++./configure  --enable-standalone --enable-servermode \
++--enable-maildrop-type=maildir \
++--enable-debugging --enable-home-dir-mail=Maildir
++
++
+diff -ruN qpopper4.0.4/example-mysql-configure.txt qpopper4.0.4-mysql-0.6/example-mysql-configure.txt
+--- qpopper4.0.4/example-mysql-configure.txt	Wed Dec 31 16:00:00 1969
++++ qpopper4.0.4-mysql-0.6/example-mysql-configure.txt	Tue Jan 14 12:24:21 2003
+@@ -0,0 +1 @@
++./configure  --enable-servermode --enable-shy --enable-specialauth --enable-temp-drop-dir=/var/spool/mail/.pop --disable-check-pw-max --enable-fast-update --prefix=/usr --disable-hash-dir-check --enable-standalone --enable-mysql --enable-log-login-mysql --with-mysqlconfig=/etc/mysql-popper.conf
+diff -ruN qpopper4.0.4/mysql-popper.conf qpopper4.0.4-mysql-0.6/mysql-popper.conf
+--- qpopper4.0.4/mysql-popper.conf	Wed Dec 31 16:00:00 1969
++++ qpopper4.0.4-mysql-0.6/mysql-popper.conf	Tue Jan 14 12:24:21 2003
+@@ -0,0 +1,92 @@
++# Host where Mysql server is. Defaults to "localhost"
++MysqlAuthHost			xxx.xxx.xxx.xxx
++
++# Port on which Mysql daemon runs. Defaults to "3306"
++MysqlAuthPort			3306
++
++# Database to auth off. Defaults to "authdb"
++MysqlAuthDb			authdb
++
++# Username and password used to connect to Mysql daemon
++# REQUIRED
++MysqlUsername			root
++MysqlPassword			mypassword
++# aliases for the above
++#MysqlAuthUsername		root
++#MysqlAuthPassword		mypassword
++
++# The table we auth off of
++# Defaults to "qpopper"
++MysqlAuthTable			email
++
++# The method we will use to compare the user-entered
++# password against their database password
++# "cleartext" if your db passwords are in cleartext
++# "crypt" if your db passwords are unix crypted
++# "md5" if your db passwords are MD5() encoded
++# "mysql" if your db passwords are PASSWORD() encoded (MySQL's method)
++# "both" to check both cleartext and crypt
++# "any" to check all methods
++# Defaults to "cleartext"
++MysqlAuthPasswordMethod		cleartext
++
++# Field where user username is
++# Defaults to "username"
++MysqlAuthUsernameField		username
++
++# VIRTUAL DOMAIN SETUP
++# In a virtual setup, the mail spool DIRECTORY will be constructed
++# by using the POP_MAILDIR variable + the user's domain
++# e.g. /var/spool/mail/yourdomain.com/
++# If hashing is enabled, it is done AFTER this is constructed.
++# e.g. for a hash setting of 2, /var/spool/mail/yourdomain.com/u/s/
++# (for a username of "user")
++# If using HOMEDIRMAIL, refer to the path structures explained
++# in the README.MYSQL
++#
++# YOU MUST DEFINE *BOTH* OF THE FOLLOWING 2 DOMAIN OPTIONS
++# IN A VIRUTAL DOMAIN SETUP. 
++#
++# Field where user domain is
++# Define this for a virtual domain setup
++# DONT define it for a non-virtual domain setup
++#MysqlAuthDomainField		domain
++#
++# If you defined MysqlAuthDomainField and a user does not
++# specify a domain in his username, i.e. "USER username"
++# this will get used as the default domain..so it will be as
++# if he did "USER username@yourdomain.com"
++#MysqlAuthDefaultDomain		yourdomain.com
++#
++# END VIRTUAL DOMAIN SETUP
++
++# Field where user password is
++# Defaults to "password"
++MysqlAuthPasswordField		password
++
++# Options to get user UID.
++# REQUIRED - MUST specify/uncomment one
++MysqlAuthUidField		uid
++#MysqlAuthUid			65534
++#MysqlAuthUidName		nobody
++
++# Options to get user GID.
++# REQUIRED - MUST specify/uncomment one
++#MysqlAuthGidField		gid
++MysqlAuthGid			100
++#MysqlAuthGidName		nobody
++
++# If defined, specifies a field to check for account status
++# where when field value = 1, account is active.
++# 0 is disabled, 2 is suspended, 3 is on-hold.
++MysqlAuthAcctStatusField	status
++
++# If defined, specifies a field to check for the user's shell.
++# If not defined, default shell given to all users is /bin/false
++#MysqlShellField	shell
++
++# If defined, specifies a field to check for the user's mail spool
++# If not defined, the spool is generated normally by the server.
++#MysqlSpoolField		spool
++
++
+diff -ruN qpopper4.0.4/popper/Makefile.in qpopper4.0.4-mysql-0.6/popper/Makefile.in
+--- qpopper4.0.4/popper/Makefile.in	Sun Apr 22 15:55:27 2001
++++ qpopper4.0.4-mysql-0.6/popper/Makefile.in	Tue Jan 14 12:24:21 2003
+@@ -115,7 +115,7 @@
+                     pop_extend.o scram.o hmac.o base64.o pop_util.o \
+                     get_sub_opt.o msg_ptr.o drac.o pop_config.o pop_tls.o \
+                     pop_tls_openssl.o pop_tls_sslplus.o sslplus_utils.o \
+-                    main.o pop_cache.o genpath.o
++                    main.o pop_cache.o genpath.o pop_conf.o maildir.o
+ 
+ SRCS            =   pop_dele.c pop_dropcopy.c \
+                     pop_get_command.c pop_get_subcommand.c pop_init.c \
+@@ -128,7 +128,7 @@
+                     pop_extend.c scram.c hmac.c base64.c pop_util.c \
+                     get_sub_opt.c msg_ptr.c drac.c pop_config.c pop_tls.c \
+                     pop_tls_openssl.c pop_tls_sslplus.c sslplus_utils.c \
+-                    main.c pop_cache.c genpath.c
++                    main.c pop_cache.c genpath.c pop_conf.c maildir.c
+ 
+ POPAUTHOBJS     =   base64.o scram.o md5.o \
+                     hmac.o popauth.o
+@@ -143,6 +143,7 @@
+                     ${srcdir}/pop_tls.h \
+                     ${srcdir}/genpath.h \
+                     ${srcdir}/sslplus_utils.h \
++                    ${srcdir}/maildir.h \
+                     ${base_dir}/config.h \
+                     ${top_srcdir}/conf.h \
+                     ${common_dir}/flock.h \
+diff -ruN qpopper4.0.4/popper/genpath.c qpopper4.0.4-mysql-0.6/popper/genpath.c
+--- qpopper4.0.4/popper/genpath.c	Thu Apr  4 18:38:37 2002
++++ qpopper4.0.4-mysql-0.6/popper/genpath.c	Tue Jan 14 12:24:21 2003
+@@ -103,9 +103,16 @@
+ genpath ( POP *p, char *pszDrop, int iDropLen, GNPH_WHICH iWhich )
+ {
+     char   *pszUser       = NULL; /* user name */
++    char   *userdomain    = NULL; /* user name and domain */
++    char   *prev          = NULL; /* temp ptr */
++    char   *pos           = NULL; /* temp ptr */
+     int     len1          = 0;    /* used with strlcpy/strlcat */
+     int     len2          = 0;    /* used with strlcat */
+     int     len3          = 0;    /* used with strlcat */
++    int     len4          = 0;    /* used with strlcat */
++    int     len5          = 0;    /* used with strlcat */
++    int     len6          = 0;    /* used with strlcat */
++    int     len7          = 0;    /* used with strlcat */
+     int     iChunk        = 0;    /* used with Qsnprintf */
+     struct passwd *pw     = &p->pw;
+ 
+@@ -157,20 +164,53 @@
+ 
+ 	DEBUG_LOG2 ( p, "...built: (%d) '%.100s'", len1 + len2, pszDrop );
+ 
++#ifdef MYSQLAUTH
++ /* we dont add the domain on the path when creating the temp_drop       */
++ /* we dont add the domain on the path when creating the cache           */
++ /* we will do user@mydomain.com.pop and user@mydomain.com.cache instead */
++ if (iWhich != GNPH_POP && iWhich != GNPH_CACHE) {
++	if (!strcmp(p->spool_file,"NULL") && strcmp(p->domain,"NULL")) {
++		len4 = strlcat ( pszDrop, p->domain,         iDropLen );
++		len5 = strlcat ( pszDrop, "/",               iDropLen );
++	DEBUG_LOG2 ( p, "...built: (%d) '%.100s'", len1 + len2, pszDrop );
++	}
++ } /* iWhich */
++#endif
++
+     /*
+      * Next, the hashed directory (if in use)
+      */
+     if ( p->hash_spool != 0 ) {
++     if (strcmp(p->spool_file,"NULL") && 
++	 (iWhich==GNPH_PATH || iWhich==GNPH_SPOOL)) {
++	/* don't hash for specified spool */
++     }
+         len3 = strlcat ( pszDrop, get_hash_dir ( pszUser, p->hash_spool ),
+                          iDropLen );
+ 		DEBUG_LOG2 ( p, "...built: (%d) '%.100s'",
+-                         len1 + len2 + len3, pszDrop );
++                         len1 + len2 + len3 + len4 + len5, pszDrop );
++    }
++
++#ifdef MYSQLAUTH
++    /* If we are doing mysql auth AND user is using HOMEDIRMAIL      */
++    /* then we have to put the username on the end here since pw_dir */
++    /* only hold the base home directory, so domain and hashing can  */
++    /* be tacked on, if needed                                       */
++    if (!strcmp(p->spool_file,"NULL") && p->pHome_dir_mail != NULL) {
++	if (iWhich == GNPH_PATH || iWhich == GNPH_SPOOL) {
++		len6 = strlcat ( pszDrop, p->user,           iDropLen );
++		len7 = strlcat ( pszDrop, "/",               iDropLen );
++	}
+     }
++#endif
++
+ 
+     /*
+      * Check for truncation
+      */
+-    if ( len1 > iDropLen || len2 > iDropLen || len3 > iDropLen ) {
++    if ( len1 > iDropLen || len2 > iDropLen || len3 > iDropLen || 
++	 len4 > iDropLen || len5 > iDropLen || len6 > iDropLen ||
++	 len7 > iDropLen) {
+         pop_log ( p, 
+                   POP_PRIORITY, 
+                   HERE,
+@@ -187,16 +227,30 @@
+      */
+     switch ( iWhich ) {
+         case GNPH_SPOOL:  /* spool file */
+-            if ( p->pHome_dir_mail != NULL )
++            if (strcmp(p->spool_file, "NULL"))
++                len1 = strlcpy ( pszDrop, p->spool_file, iDropLen );
++            else if ( p->pHome_dir_mail != NULL )
+                 len1 = strlcat ( pszDrop, p->pHome_dir_mail, iDropLen );
+             else
+                 len1 = strlcat ( pszDrop, pszUser,  iDropLen );
+             break;
+ 
+         case GNPH_POP:    /* .pop file  */
++#ifdef MYSQLAUTH
++	userdomain = (char *)malloc(strlen(pszUser)+strlen(p->domain)+2);
++	if (strcmp(p->domain,"NULL")) {
++	strcpy(userdomain,pszUser);
++	strcat(userdomain,"@");
++	strcat(userdomain,p->domain);
++	} /* mysqlauth_domain_field */
++	else strcpy(userdomain,pszUser);
++#else
++	userdomain = (char *)malloc(strlen(pszUser)+2);
++	strcpy(userdomain,pszUser);
++#endif
+             iChunk = Qsprintf ( pszDrop + strlen(pszDrop),
+                                 p->pCfg_temp_name, 
+-                                pszUser );
++                                userdomain );
+             break;
+ 
+         case GNPH_TMP:    /* tmpxxxx    */
+@@ -216,13 +270,34 @@
+             break;
+ 
+         case GNPH_CACHE:   /* .cache file  */
++#ifdef MYSQLAUTH
++	userdomain = (char *)malloc(strlen(pszUser)+strlen(p->domain)+2);
++	if (strcmp(p->domain,"NULL")) {
++	strcpy(userdomain,pszUser);
++	strcat(userdomain,"@");
++	strcat(userdomain,p->domain);
++	} /* mysqlauth_domain_field */
++	else strcpy(userdomain,pszUser);
++#else
++	userdomain = (char *)malloc(strlen(pszUser)+2);
++	strcpy(userdomain,pszUser);
++#endif
+             iChunk = Qsprintf ( pszDrop + strlen(pszDrop),
+                                 p->pCfg_cache_name,
+-                                pszUser );
++                                userdomain );
+             break;
+ 
+         case GNPH_PATH:  /* Just the path, M'am */
+-            pszDrop [ strlen(pszDrop) -1 ] = '\0'; /* erase trailing '/' */
++            if (strcmp(p->spool_file, "NULL")) {
++                len1 = strlcpy ( pszDrop, p->spool_file, iDropLen );
++		/* get the base path of the spool file */
++                prev = pszDrop;
++                while ( (pos=strchr(prev,'/')) != NULL ) {
++	                prev = pos+1;
++                }
++                *(prev) = '\0';
++	    }
++            if (strlen(pszDrop) > 1) pszDrop [ strlen(pszDrop) -1 ] = '\0'; /* erase trailing '/' */
+             break;
+     } /* switch on iWhich */
+ 
+diff -ruN qpopper4.0.4/popper/maildir.c qpopper4.0.4-mysql-0.6/popper/maildir.c
+--- qpopper4.0.4/popper/maildir.c	Wed Dec 31 16:00:00 1969
++++ qpopper4.0.4-mysql-0.6/popper/maildir.c	Tue Jan 14 12:24:21 2003
+@@ -0,0 +1,271 @@
++/*
++ * maildir.c - 04/05/2002
++ * Anthony J. Biacco - thelittleprince@asteroid-b612.org
++ */
++
++
++#include <stdio.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <errno.h>
++#include <sys/errno.h> 
++#include <ctype.h>
++#include <stdlib.h>
++#include <flock.h>
++#include <string.h>
++
++#include "config.h"
++
++#if HAVE_STRINGS_H
++# include <strings.h>
++#endif
++
++#ifdef HAVE_DIRENT_H 
++#  include <dirent.h>
++#  define NAMLEN(dirent) strlen((dirent)->d_name)
++#else /* ifdef HAVE_DIRENT_H */
++#  define dirent direct
++#  define NAMLEN(dirent) (dirent)->d_namlen
++
++#  ifdef HAVE_SYS_NDIR_H
++#    include <sys/ndir.h>
++#  endif /* HAVE_SYS_NDIR_H */
++
++#  ifdef HAVE_SYS_DIR_H
++#    include <sys/dir.h>
++#  endif /* HAVE_SYS_DIR_H */
++
++#  if HAVE_NDIR_H
++#    include <ndir.h>  
++#  endif /* HAVE_NDIR_H */
++#endif /* else of ifdef HAVE_DIRENT_H */
++
++#ifdef HAVE_SYS_UNISTD_H
++#  include <sys/unistd.h>
++#endif /* HAVE_SYS_UNISTD_H */
++
++#ifdef HAVE_UNISTD_H
++#  include <unistd.h>  
++#endif /* HAVE_UNISTD_H */
++
++#include "genpath.h"
++#include "popper.h"
++#include "maildir.h"
++#include "snprintf.h"
++
++/* delete maildir tmp files this many hours old during cleanup */
++#define HOURS_OLD	36
++
++
++int maildir_clean(p)
++POP     *    p;
++{
++int rslt;
++char dirname[PATH_MAX];
++char filename[PATH_MAX];
++time_t tm;
++DIR *dirp;
++struct dirent *dp;
++struct stat stat_buf;
++
++ if ((strlen(p->drop_name) + 7) > sizeof(dirname)) return ( POP_FAILURE );
++strcpy(dirname, p->drop_name);
++strcat(dirname,"/tmp/");
++tm=time(0);
++
++ if ((dirp = opendir(dirname)) == NULL) {
++      pop_log ( p, POP_PRIORITY, HERE,
++                "Unable to open tmp maildir directory '%.128s': %s (%d)",
++                dirname, strerror(errno), errno );
++      return ( POP_FAILURE );
++ } /* opendir */
++
++ while ((dp = readdir(dirp)) != NULL) {
++	if (dp->d_name[0]=='.') continue;
++	rslt = Qsnprintf(filename,sizeof(filename),"%s%s",dirname,dp->d_name);
++	if (rslt == -1) break;
++	if (stat(filename, &stat_buf) < 0) continue;
++	if (tm > (stat_buf.st_atime + (HOURS_OLD*3600))) unlink(filename);
++ } /* readdir */
++ (void) closedir (dirp);
++
++return ( POP_SUCCESS );
++} /* maildir_clean */
++
++
++int maildir_create(p, temp_mode, spool_mode, spool_owner, spool_group)
++POP     *    p;
++mode_t temp_mode;
++mode_t spool_mode;
++uid_t spool_owner;
++gid_t spool_group;
++{
++int curdir = 1;
++char buffer2 [ MAXLINELEN ];
++struct stat             mybuf;
++
++strcpy(buffer2, p->drop_name);
++
++ while (curdir < 4) {
++                if ( stat ( buffer2, &mybuf ) == -1 && errno == ENOENT ) {  
++                    /* The directory doesn't exit -- create it */
++                    if ( mkdir ( buffer2, temp_mode ) == -1 )
++                        return pop_msg ( p, POP_FAILURE, HERE,
++                                         "[SYS/TEMP] Unable to create spool directory "
++                                         "%s (%04o): %s (%d)",   
++                                         buffer2, (int) temp_mode, STRERROR(errno), errno );
++                    if ( chmod ( buffer2, spool_mode ) == -1 )
++                        return pop_msg ( p, POP_FAILURE, HERE,
++                                        "[SYS/TEMP] Unable to chmod of %s to %04o: "
++                                        "%s (%d)",
++                                        buffer2, (int) spool_mode, STRERROR(errno), errno );
++                    if ( chown ( buffer2, spool_owner, spool_group ) == -1 )  
++                        return pop_msg ( p, POP_FAILURE, HERE,
++                                        "[SYS/TEMP] Unable to set owner/group of spool "
++                                        "directory %s to %d/%d: %s (%d)",
++                                        buffer2, (int) spool_owner, (int) spool_group,
++                                        STRERROR(errno), errno );
++
++                    if ( DEBUGGING ) {
++                        if ( stat ( buffer2, &mybuf ) != 0 )
++                            return pop_msg ( p, POP_FAILURE, HERE,
++                                            "[SYS/TEMP] Unable to access newly-created "
++                                            "dir %s: %s (%d)",
++                                            buffer2, STRERROR(errno), errno );
++                        DEBUG_LOG4 ( p, "Created %s; mode=%04o; owner=%d; group=%d",
++                                     buffer2, (unsigned int) mybuf.st_mode,
++                                     (int) mybuf.st_uid, (int) mybuf.st_gid );
++                    } /* DEBUGGING */
++		} /* directory doesn't exist */
++		if (curdir==1) Qsnprintf(buffer2,sizeof(buffer2),"%s/new",p->drop_name);
++		else if (curdir==2) Qsnprintf(buffer2,sizeof(buffer2),"%s/cur",p->drop_name);
++		else if (curdir==3) Qsnprintf(buffer2,sizeof(buffer2),"%s/tmp",p->drop_name);
++		curdir++;
++ } /* while */
++
++return ( POP_SUCCESS );
++} /* maildir_create */
++
++
++int maildir_updt(p)
++POP     *    p;
++{
++    MsgInfoList         *   mp = NULL;              /*  Pointer to message
++                                                        info list */
++    register int            msg_num;                /*  Current message
++                                                        counter */
++    int rslt;
++    char filename[PATH_MAX];
++    char filename2[PATH_MAX];
++    time_t                  my_timer    = time(0);  /*  For timing */
++
++
++    if ( p->bAuto_delete && p->bUpdate_on_abort == FALSE )
++    {
++        /*
++           bAuto_delete causes messages which have been RETRd by the client to be
++           unconditionally and automatically marked deleted.  This prevents clients
++           from leaving mail on the server.
++
++           CAUTION: Be sure users are informed of this before enabling it, to
++           prevent lost mail.
++
++           Note: bUpdate_on_abort must be FALSE; otherwise users may lose mail
++           if they try and RETR it but the connection closes for any reason, the
++           client aborts, etc.
++        */
++        if ( p->msgs_deleted < p->msg_count )
++        { /* there are msgs available for deletion */
++            DEBUG_LOG0 ( p, "Auto-deleting messages which have been RETRd..." );
++            for ( msg_num = 0; msg_num < p->msg_count; ++msg_num )
++            { /* msg loop */
++                mp = &p->mlp [ msg_num ];
++                if ( mp->retr_flag && !mp->del_flag )
++                {
++		    Qsnprintf(filename,sizeof(filename),"%s/%s",p->drop_name,mp->filename);
++                    unlink ( filename );
++                    DEBUG_LOG2 ( p, ">>> msg %i %s automatically flagged as DELETED <<<",
++                                 msg_num, mp->filename );
++                }
++
++            } /* msg loop */
++        } /* there are msgs available for deletion */
++    } /* bAuto_delete && bUpdate_on_abort == FALSE */
++
++    DEBUG_LOG0 ( p, "Performing maildrop update..." );
++    DEBUG_LOG0 ( p, "Checking to see if all messages were deleted" );
++
++    if ( p->bStats ) {
++        pop_log ( p, POP_PRIORITY, HERE, "Stats: %s %d %ld %d %ld %s %s",
++                  p->user, p->msgs_deleted, p->bytes_deleted,
++                  p->msg_count - p->msgs_deleted,
++                  p->drop_size - p->bytes_deleted,
++                  p->client, p->ipaddr );
++    }
++
++if ( p->msgs_deleted == p->msg_count ) {
++/* Delete all messages */
++
++            for ( msg_num = 0; msg_num < p->msg_count; ++msg_num )
++            { /* msg loop */
++                mp = &p->mlp [ msg_num ];
++		    Qsnprintf(filename,sizeof(filename),"%s/%s",p->drop_name,mp->filename);
++                    unlink ( filename );
++                    DEBUG_LOG2 ( p, ">>> msg %i %s DELETED for deletion of all <<<",
++                                 msg_num, mp->filename );
++            } /* msg loop */
++
++    if ( p->bDo_timing )
++        p->clean_time = time(0) - my_timer;
++
++        return ( POP_SUCCESS );
++} /* p->msgs_deleted == p->msg_count */
++
++if ( p->msgs_deleted != p->msg_count ) {
++        DEBUG_LOG3 ( p, "Server mode=%i; %i out of %i msgs deleted; "
++                        "copying msgs from new/ to cur/",
++                     p->server_mode, p->msgs_deleted, p->msg_count );
++
++        for ( msg_num = 0; msg_num < p->msg_count; ++msg_num ) {
++
++            /*
++             * Get a pointer to the message information list
++             */
++            mp = &p->mlp [ msg_num ];
++
++Qsnprintf(filename,sizeof(filename),"%s/%s",p->drop_name,mp->filename);
++
++if ( mp->del_flag ) {
++DEBUG_LOG1 ( p, "Message %d flagged for deletion.", mp->number );
++unlink ( filename );
++}
++else {
++if (strncmp(mp->filename, "new/", 4) != 0) continue;
++Qsnprintf(filename2,sizeof(filename2),"%s/cur/%s:2,",p->drop_name,mp->filename + 4);
++rename(filename,filename2);
++} /* else */
++
++} /* for */
++
++} /* p->msgs_deleted != p->msg_count */
++
++return ( POP_SUCCESS );
++} /* maildir_updt */
++
++
++char *maildir_calc_msg_uidl(str)
++char *str;
++{
++char *tmpptr;
++char tmpptr2[strlen(str)+1];
++
++
++memset(tmpptr2, 0, sizeof(tmpptr2));
++
++if ((tmpptr = strchr(str, ':')) != NULL) {
++        strncpy(tmpptr2, str, strlen(str)-strlen(tmpptr));
++	str=tmpptr2;
++}
++
++return str;
++} /* maildir_get_msg_uidl */
+diff -ruN qpopper4.0.4/popper/maildir.h qpopper4.0.4-mysql-0.6/popper/maildir.h
+--- qpopper4.0.4/popper/maildir.h	Wed Dec 31 16:00:00 1969
++++ qpopper4.0.4-mysql-0.6/popper/maildir.h	Tue Jan 14 12:24:21 2003
+@@ -0,0 +1,11 @@
++/*
++ * maildir.h - 04/05/2002
++ * Anthony J. Biacco - thelittleprince@asteroid-b612.org
++ */
++
++#include "config.h"
++
++int maildir_clean(POP *p);
++int maildir_create(POP *p, mode_t temp_mode, mode_t spool_mode, uid_t spool_owner, gid_t spool_group);
++int maildir_updt(POP *p);
++char *maildir_calc_msg_uidl(char *str);
+diff -ruN qpopper4.0.4/popper/pop_conf.c qpopper4.0.4-mysql-0.6/popper/pop_conf.c
+--- qpopper4.0.4/popper/pop_conf.c	Wed Dec 31 16:00:00 1969
++++ qpopper4.0.4-mysql-0.6/popper/pop_conf.c	Tue Jan 14 12:24:21 2003
+@@ -0,0 +1,172 @@
++/*
++ * pop_conf.c - 06/20/2001
++ * Anthony J. Biacco - thelittleprince@asteroid-b612.org
++ */
++
++
++#include "config.h"
++
++#ifdef MYSQLAUTH
++
++#include <stdio.h>
++#include <sys/types.h>
++#include <ctype.h>
++#include <stdlib.h>
++#include <string.h>
++#if HAVE_STRINGS_H
++# include <strings.h>
++#endif
++
++#include <pwd.h>
++#include <grp.h>
++#include "popper.h"
++
++#define BUFSIZE 128
++
++struct config_options {
++    char *name;
++    char **value;
++    char *default_value;
++};
++	
++
++char *mysqlauth_uid_name;
++char *mysqlauth_gid_name;
++char *mysqlauth_uid_s;
++char *mysqlauth_gid_s;
++
++struct config_options options[] = {
++    /* Host user for authentication */
++    {"mysqlauthhost", &mysqlauth_host, "localhost"},
++    /* Mysql port */
++    {"mysqlauthport", &mysqlauth_port, "3306"},
++    /* Database used for authentication */
++    {"mysqlauthdb", &mysqlauth_db, "authdb"},
++    /* Username to connect to db */
++    {"mysqlusername", &mysqlauth_username, NULL},
++    /* Password to connect to db */
++    {"mysqlpassword", &mysqlauth_password, NULL},
++    /* Alias for mysqlusername */
++    {"mysqlauthusername", &mysqlauth_username, NULL},
++    /* Alias for mysqlpassword */
++    {"mysqlauthpassword", &mysqlauth_password, NULL},
++    /* Table used for authentication */
++    {"mysqlauthtable", &mysqlauth_table, "qpopper"},
++    /* One of "cleartext", "crypt", "md5", "mysql", "all", or "both" */
++    {"mysqlauthpasswordmethod", &mysqlauth_password_method, "cleartext"},
++    {"mysqlauthusernamefield", &mysqlauth_username_field, "username"},
++    {"mysqlauthpasswordfield", &mysqlauth_password_field, "password"},
++    {"mysqlauthdomainfield", &mysqlauth_domain_field, NULL},
++    /* Domain to be used if none specified */
++    {"mysqlauthdefaultdomain", &mysqlauth_default_domain, ""},
++    {"mysqlauthuidfield", &mysqlauth_uid_field, NULL},
++    {"mysqlauthgidfield", &mysqlauth_gid_field, NULL},
++    {"mysqlauthuid", &mysqlauth_uid_s, NULL},
++    {"mysqlauthuidname", &mysqlauth_uid_name, NULL},
++    {"mysqlauthgid", &mysqlauth_gid_s, NULL},
++    {"mysqlauthgidname", &mysqlauth_gid_name, NULL},
++    {"mysqlauthacctstatusfield", &mysqlauth_acct_status_field, NULL},
++    {"mysqlshellfield", &mysqlauth_shell_field, NULL},
++    {"mysqlspoolfield", &mysqlauth_spool_field, NULL},
++    {(char *)NULL, (char **)NULL, NULL}
++};
++
++int
++load_popper_conf(p)
++POP     *    p;
++{
++    FILE *config;
++    char buf[BUFSIZE];
++    struct config_options *c_options;
++    char *tkp;
++    char key[BUFSIZE], value[BUFSIZE];
++
++    config = fopen (MYSQL_CONF,"r");
++    if(!config) {
++	pop_log(p, POP_PRIORITY, HERE,
++		"Unable to open mysql config file %s", MYSQL_CONF);
++	return POP_FAILURE;
++    }
++
++    c_options = options;
++    while(c_options->name) {
++	*(c_options->value) = c_options->default_value;
++	c_options++;
++    }
++
++
++
++    while (fgets(buf, BUFSIZE, config)) {
++        buf[strlen(buf)-1]=0;
++	if (buf[0] == '#' || buf[0] == '\0') {
++	    continue;
++	}
++	sscanf(buf, "%s %s", key, value);
++
++	/* Lowercase string */
++	for(tkp=key; *tkp; tkp++) *tkp = tolower(*tkp);
++
++	c_options = options;
++	while(c_options->name) {
++	    if(!strcmp(key, c_options->name)) {
++		*(c_options->value) = (char *)malloc(strlen(value)+1);
++		strcpy(*(c_options->value),value);
++		break;
++	    }
++	    c_options++;
++	}
++    }
++
++    fclose(config);
++
++/* Check for config dependencies */
++    
++    if(!(mysqlauth_uid_field || mysqlauth_uid_s || mysqlauth_uid_name)) {
++	pop_log(p, POP_PRIORITY, HERE,
++		"Must specify one of MySqlAuthUidField or MysqlAuthUid "
++		"or MysqlAuthUidName"
++	    );
++	return POP_FAILURE;
++    }
++    if(!mysqlauth_uid_s && mysqlauth_uid_name) {
++	struct passwd *pw;
++	if(!(pw = getpwnam(mysqlauth_uid_name))) {
++	    pop_log(p, POP_PRIORITY, HERE,
++		    "MysqlAuthUidName %s cannot be found", mysqlauth_uid_name);
++	    return POP_FAILURE;
++	}
++	mysqlauth_uid = pw->pw_uid;
++
++    } else {
++	if(mysqlauth_uid_s) mysqlauth_uid = atoi(mysqlauth_uid_s);
++	else mysqlauth_uid = -1;
++    }
++	
++    if(!(mysqlauth_gid_field || mysqlauth_gid_s || mysqlauth_gid_name)) {
++	pop_log(p, POP_PRIORITY, HERE, 
++		"Must specify one of MySqlAuthGidField or MysqlAuthGid " 
++		"or MysqlAuthGidName");
++	return POP_FAILURE;
++    }
++    if(!mysqlauth_gid_s && mysqlauth_gid_name) {
++	struct group *gr;
++	if(!(gr = getgrnam(mysqlauth_gid_name))) {
++	    pop_log(p, POP_PRIORITY, HERE,
++		    "MysqlAuthUidName %s cannot be found", mysqlauth_gid_name);
++	    return POP_FAILURE;
++	}
++	mysqlauth_gid = gr->gr_gid;
++    } else {
++	if(mysqlauth_gid_s) mysqlauth_gid = atoi(mysqlauth_gid_s);
++	else mysqlauth_gid = -1;
++    }
++    if (!mysqlauth_domain_field) {
++    pop_log(p, POP_PRIORITY, HERE, "NOTE: Virtual domain authentication is disabled");
++    }
++
++    return POP_SUCCESS;
++
++
++}
++		
++#endif
+diff -ruN qpopper4.0.4/popper/pop_config.c qpopper4.0.4-mysql-0.6/popper/pop_config.c
+--- qpopper4.0.4/popper/pop_config.c	Wed Jul 25 17:22:26 2001
++++ qpopper4.0.4-mysql-0.6/popper/pop_config.c	Tue Jan 14 12:24:21 2003
+@@ -221,6 +221,9 @@
+     kLOG_FACILITY,          /* -y facility      */
+     kLOG_LOGIN,             /*    (no flag)     */
+     kMAXBULLS,              /*    (no flag)     */
++    kCHECK_MAILDIR_DIR,     /*    (no flag)     - CYGNUS */
++    kMAILDROP_TYPE,         /*    (no flag)     - CYGNUS */
++    kSPOOL_FILE,            /*    (no flag)     - CYGNUS */
+ 
+ 
+     LAST_OPT_VAL
+@@ -292,6 +295,9 @@
+     { "user-options"                 , CfgBool , CfgResUser, kUSEROPTS           },
+     { "UW-kluge"                     , CfgBool , CfgResNone, kUW_KLUGE           },
+     { "UW-kludge"                    , CfgBool , CfgResNone, kUW_KLUGE           },
++    { "check-maildir-dir"            , CfgBool , CfgResNone, kCHECK_MAILDIR_DIR  },
++    { "maildrop-type"                , CfgMnem , CfgResUser, kMAILDROP_TYPE      },
++    { "spool-file"                   , CfgStr  , CfgResUser, kSPOOL_FILE         },
+ 
+     { NULL                           , CfgBad  , CfgResNone, LAST_OPT_VAL        }
+ };
+@@ -393,6 +399,16 @@
+     { NULL              , PopLogMail            }
+ };
+     
++/* ...maildrop-type */
++static mnemonic_map mnem_map_maildrop_type [] =
++{
++    { "default"         , QPOP_MBOX_DROP     },
++    { "mbox"            , QPOP_MBOX_DROP     },
++    { "maildir"         , QPOP_MAILDIR_DROP  },
++
++    { NULL              , QPOP_MBOX_DROP     }
++};
++
+ 
+ /*
+  * Map each option to its specific table
+@@ -404,6 +420,7 @@
+     { kTLS_VERSION      , mnem_map_tls_vers       },
+     { kCHUNKY_WRITES    , mnem_map_chunky_writes  },
+     { kLOG_FACILITY     , mnem_map_log_facility   },
++    { kMAILDROP_TYPE    , mnem_map_maildrop_type  },
+ 
+     { -1                , NULL                     }
+ };
+@@ -445,7 +462,7 @@
+ static void          skip_token (config_opt_type ttype, char **token, long *token_len, long *line_len);
+ static void          show_result (POP *p, config_table *opt, int iVal, const char *sVal, WHENCE);
+ static error_code_type handle_value (POP *p, config_table *opt, char *pval, int plen, config_call_type CallTime);
+-
++static char          *get_hash_dir ( char *pszUser, int iMethod );
+ 
+ /*
+  * Log an error message.
+@@ -893,6 +910,9 @@
+         case kLOG_FACILITY:        R__MNM ( &p->log_facility );
+         case kLOG_LOGIN:           R__PTR ( &p->pLog_login );
+         case kMAXBULLS:            R__INT ( &p->nMaxBulls );
++        case kCHECK_MAILDIR_DIR:   R__BOO ( &p->bCheck_maildir_dir );
++        case kMAILDROP_TYPE:       R__MNM ( &p->MaildropType );
++        case kSPOOL_FILE:          R__PTR ( &p->spool_file );
+ 
+         default:                   R__PTR ( NULL );
+     } /* switch ( item ) */
+@@ -1486,11 +1506,29 @@
+ {
+     int         rslt;
+     char        buf [ 256 ];
++    char        tempbuf [ 256 ];
+     struct stat stat_buf;
+ 
+ 
+     if ( p->bUser_opts ) {
++#ifdef MYSQLAUTH
++	/* assumes home directory? */
++	strcpy(tempbuf,pwp->pw_dir);
++	/* tack on domain */
++	if (strcmp(p->domain,"NULL")) {
++		strlcat ( tempbuf, p->domain, sizeof(tempbuf) );
++		strlcat ( tempbuf, "/", sizeof(tempbuf) );
++	}
++	/* tack on hashing */
++	if ( p->hash_spool != 0 ) {
++	 strlcat ( tempbuf, get_hash_dir ( p->user, p->hash_spool ), sizeof(tempbuf) );
++	}
++	/* tack on user */
++	strlcat ( tempbuf, p->user, sizeof(tempbuf) );
++        rslt = Qsnprintf ( buf, sizeof(buf), "%s/.qpopper-options", tempbuf );
++#else
+         rslt = Qsnprintf ( buf, sizeof(buf), "%s/.qpopper-options", pwp->pw_dir );
++#endif
+         if ( rslt == -1 )
+             pop_log ( p, POP_PRIORITY, HERE, 
+                       "Unable to build user options file name for user %s",
+@@ -1509,8 +1547,19 @@
+     } /* p->user_opts */
+ 
+     if ( p->bSpool_opts ) {
++#ifdef MYSQLAUTH
++	if (strcmp(p->domain,"NULL")) {
++        rslt = Qsnprintf ( buf, sizeof(buf), "%s/.%s@%s.qpopper-options",
++                           p->pCfg_spool_dir, p->user, p->domain );
++	}
++	else {
+         rslt = Qsnprintf ( buf, sizeof(buf), "%s/.%s.qpopper-options",
+                            p->pCfg_spool_dir, p->user );
++	}
++#else
++        rslt = Qsnprintf ( buf, sizeof(buf), "%s/.%s.qpopper-options",
++                           p->pCfg_spool_dir, p->user );
++#endif
+         if ( rslt == -1 )
+             pop_log ( p, POP_PRIORITY, HERE, 
+                       "Unable to build spool options file name for user %s",
+@@ -1562,3 +1611,72 @@
+ 
+     return rslt;
+ }
++
++/*
++ * Hashing to a spool directory helps reduce the lookup time for sites
++ * with thousands of mail spool files.  Unix uses a linear list to
++ * save directory information and the following methods attempt to
++ * improve the performance.
++ *  
++ * Method 1:  add the value of the first 5 chars mod 26 and open the
++ *            spool file in the directory 'a' - 'z'/user.
++ *            Brian Buhrow <buhrow@cats.ucsc.edu>
++ *
++ * Method 2:  Use the first 2 characters to determine which mail spool
++ *            to open.  E.g., /usr/spool/u/s/user.
++ *            Larry Schwimmer <rosebud@cyclone.stanford.edu>
++ *            (if only one character it is repeated.)
++ *
++ * All these methods require that local mail delivery and client programs
++ * use the same algorithm.  Only one method to a customer :-)
++ */
++            
++static char hash_buf [ 5 ];
++                 
++static char *
++get_hash_dir ( char *pszUser, int iMethod )
++{
++    if ( iMethod == 1 ) {
++        int     seed          = 0;
++  
++        /*Now, perform the hash*/
++ 
++        switch ( strlen(pszUser) ) {
++            case 1:
++                seed = ( pszUser[0] );
++                break;
++            case 2:
++                seed = ( pszUser[0] + pszUser[1] );
++                break;
++            case 3:
++                seed = ( pszUser[0] + pszUser[1] + pszUser[2] );
++                break;
++            case 4:
++                seed = ( pszUser[0] + pszUser[1] + pszUser[2]+  pszUser[3] );
++                break;
++            default:
++                seed = ( pszUser[0] + pszUser[1] + pszUser[2] +
++                         pszUser[3] + pszUser[4] );
++                break;
++        } /* switch on pszUser length */
++                
++        hash_buf [ 0 ] = (char) ( (seed % 26) + 'a' );
++        hash_buf [ 1 ] = '/';
++        hash_buf [ 2 ] = '\0';
++            
++        return hash_buf;
++    } /* hash_spool == 1 */
++    else
++    if ( iMethod == 2 ) {
++        hash_buf [ 0 ] = *pszUser;
++        hash_buf [ 1 ] = '/';
++        hash_buf [ 2 ] = ( *(pszUser + 1) ? *(pszUser + 1) : *pszUser );
++        hash_buf [ 3 ] = '/';
++        hash_buf [ 4 ] = '\0';
++        return hash_buf;
++    } /* hash_spool == 2 */
++    else
++        return NULL;
++}
++
++
+diff -ruN qpopper4.0.4/popper/pop_dropcopy.c qpopper4.0.4-mysql-0.6/popper/pop_dropcopy.c
+--- qpopper4.0.4/popper/pop_dropcopy.c	Thu Apr  4 18:38:46 2002
++++ qpopper4.0.4-mysql-0.6/popper/pop_dropcopy.c	Tue Jan 14 12:24:21 2003
+@@ -168,6 +168,26 @@
+ #include "config.h"
+ #include "md5.h"
+ 
++#ifdef HAVE_DIRENT_H
++#  include <dirent.h>
++#  define NAMLEN(dirent) strlen((dirent)->d_name)
++#else /* ifdef HAVE_DIRENT_H */
++#  define dirent direct
++#  define NAMLEN(dirent) (dirent)->d_namlen
++
++#  ifdef HAVE_SYS_NDIR_H
++#    include <sys/ndir.h>
++#  endif /* HAVE_SYS_NDIR_H */
++
++#  ifdef HAVE_SYS_DIR_H
++#    include <sys/dir.h>
++#  endif /* HAVE_SYS_DIR_H */
++
++#  if HAVE_NDIR_H
++#    include <ndir.h>
++#  endif /* HAVE_NDIR_H */
++#endif /* else of ifdef HAVE_DIRENT_H */
++
+ #if HAVE_UNISTD_H
+ #  include <unistd.h>
+ #endif /* HAVE_UNISTD_H */
+@@ -196,6 +216,8 @@
+ #include "misc.h"
+ #include "maillock.h"
+ #include "string_util.h"
++#include "maildir.h"
++#include "snprintf.h"
+ 
+ 
+ /*
+@@ -422,7 +444,7 @@
+     MsgInfoList    *mp;                     /* Pointer to message info list */
+     int             msg_num;                /* Current message number */
+     int             visible_msg_num;        /* Current visible message number */
+-    int             nchar;
++    int             nchar = 0;
+     BOOL            bInHeader;
+     BOOL            bInContHeader;
+     int             uidl_found;
+@@ -439,9 +461,332 @@
+     int             uw_hint    = 0;
+     BOOL            bNewUIDs   = p->bUpdate_status_hdrs == TRUE &&
+                                  p->bOld_style_uid      == FALSE;
++    char            dirname[PATH_MAX];
++    char            filename[PATH_MAX];
++    char	    ouruidl[256];
++    char            curdir[4];
++    int             countdir     = 0;
++    int             rslt;
++    FILE            *fp = 0;
++    DIR             *dirp;
++    struct dirent   *dp;
+ 
+-    DEBUG_LOG1 ( p, "DROPINFO Checking file %s", fname );
+ 
++if (p->MaildropType == MAILDIR_DROP) {
++if ((strlen(fname) + 7) > sizeof(dirname)) return POP_FAILURE;
++
++    mp = p->mlp - 1;
++    newline = 1;
++
++    bInHeader         = FALSE;
++    bInContHeader     = FALSE;
++    msg_num           = 0;
++    visible_msg_num   = 0;
++    uidl_found        = 0;
++    expecting_trailer = 0;
++    content_length    = 0;
++    content_nchar     = 0;
++    cont_len          = 0;
++    p->msg_count      = ALLOC_MSGS;
++
++while (countdir < 2) {
++if (!countdir) strcpy(curdir,"new");
++else if (countdir==1) strcpy(curdir,"cur");
++Qsnprintf(dirname,sizeof(dirname),"%s/%s",fname,curdir);
++countdir++;
++
++    DEBUG_LOG1 ( p, "DROPINFO Checking maildir directory %s", dirname );
++
++ if ((dirp = opendir(dirname)) == NULL) {
++      pop_log ( p, POP_PRIORITY, HERE,
++                "Unable to open maildir directory '%.128s': %s (%d)",
++                dirname, strerror(errno), errno );
++      return POP_FAILURE;
++ } /* opendir */
++
++ while ((dp = readdir(dirp)) != NULL) {
++ 	if (dp->d_name[0]=='.') continue;
++ 	rslt = Qsnprintf(filename,sizeof(filename),"%s/%s",dirname,dp->d_name);
++ 	if (rslt == -1) break;
++
++	if (!(fp = fopen(filename, "r"))) {
++	 (void) closedir (dirp);
++	 p->msg_count = 0;
++         pop_log ( p, POP_PRIORITY, HERE,
++                "Unable to open maildir file '%.128s': %s (%d)",
++                filename, strerror(errno), errno );
++         return POP_FAILURE;
++	} /* if open */
++
++    if ( mfgets ( buffer, MAXMSGLINELEN, fp ) == NULL ) {
++	fclose(fp);
++	(void) closedir (dirp);
++        DEBUG_LOG1 ( p, "Drop file empty intially : %s", filename );
++        return ( POP_SUCCESS );    
++    }
++
++/*
++    if ( !isfromline(buffer) ) {
++	fclose(fp);
++	(void) closedir (dirp);
++        DEBUG_LOG5 ( p, "newline=%d; isOflow=%d; wasOflow=%d; buffer(%u):  %.256s", 
++                     newline, isOflow, wasOflow, strlen(buffer), buffer );
++        return pop_msg ( p, POP_FAILURE, HERE,
++                         "[SYS/PERM] Unable to process From lines "
++                         "(envelopes) in %s; change recognition "
++                         "mode or check for corrupted mail drop.",
++                         filename );
++    }
++*/
++
++/* Preserve From envelope */
++/*                strlcpy(frombuf, buffer, sizeof(frombuf)); */
++
++            /* 
++             * ------ Get ready for the next message ----- 
++             */
++            MD5Init   ( &mdContext );
++/*
++            MD5Update ( &mdContext, (unsigned char *)buffer,
++                        strlen(buffer) );
++*/
++
++            if ( bNewUIDs ) {
++                /* 
++                 * Include a unique number in case everything else is not.
++                 *
++                 * We don't do this unless bUpdate_status_hdrs is set, because
++                 * in that case the UIDs need to be deterministic so they stay
++                 * the same when recalculated each session.
++                 */
++/*
++                unique_num++;
++                MD5Update ( &mdContext, (unsigned char *)&unique_num, 
++                            sizeof(long) );
++*/
++            }
++
++            if ( bInHeader == FALSE ) {
++                if ( ++msg_num > p->msg_count ) {
++                    p->mlp = (MsgInfoList *) realloc ( p->mlp,
++                                                       (p->msg_count += ALLOC_MSGS) 
++                                                       * sizeof(MsgInfoList) );
++                    if ( p->mlp == NULL ) {
++                        p->msg_count = 0;
++			fclose(fp);
++			(void) closedir (dirp);
++                        return pop_msg ( p, POP_FAILURE, HERE,
++                                         "[SYS/TEMP] Can't build message list "
++                                         "for '%s': Out of memory",
++                                         p->user );
++                    }
++                    mp = p->mlp + msg_num - 2;
++                }
++
++                if ( msg_num != 1 ) {
++                    DEBUG_LOG5 ( p, "Msg %d uidl '%s' at offset %ld is %ld "
++                                    "octets long and has %u lines.",
++                                 mp->number, mp->uidl_str, mp->offset, 
++                                 mp->length, mp->lines );
++                }
++                else
++                    DEBUG_LOG0 ( p, "Found top of first message" );
++                ++mp;
++
++            } 
++            else { /* still in header */
++                pop_log ( p, POP_PRIORITY, HERE,
++                          "Msg %d corrupted; ignoring previous header"
++                          " information.",
++                          mp->number );
++            }
++            mp->number     = msg_num;
++            mp->length     = 0;
++            mp->lines      = 0;
++            mp->body_lines = 0;
++/*
++            mp->offset     = ftell(fp) - nchar;
++*/
++	    mp->offset     = 0;
++            mp->del_flag   = FALSE;
++            mp->hide_flag  = FALSE;
++            mp->retr_flag  = FALSE;
++            mp->orig_retr_state = FALSE;
++            mp->uidl_str[0]= '\n';
++            mp->uidl_str[1]= '\0';
++            mp->filename[0]= 0;
++	    Qsnprintf(mp->filename,sizeof(mp->filename),"%s/%s",curdir,dp->d_name);
++            DEBUG_LOG3 ( p, "Msg %d file %s being added to list %p", mp->number,
++		mp->filename, p->mlp );
++            bInHeader      = TRUE;
++            bInContHeader  = FALSE;
++            uidl_found     = 0;
++            content_nchar  = 0;
++            content_length = 0;
++            cont_len       = 0;
++
++rewind ( fp );
++
++    while ( mfgets ( buffer, MAXMSGLINELEN, fp ) != NULL ) {
++        nchar = strlen(buffer);
++
++        if ( bInHeader ) {
++            if ( bInContHeader && ( *buffer != ' ' || *buffer != '\t' ) )
++                bInContHeader  = FALSE;
++            if ( *buffer == '\n' ) { /* End of headers */
++                bInHeader      = FALSE;
++                bInContHeader  = FALSE;
++                content_length = cont_len;
++                mp->body_lines = 1;  /* Count newline as the first body line */
++                if ( mp->hide_flag == 0 )
++                    mp->visible_num = ++visible_msg_num;
++                
++                if ( !uidl_found ) {
++                    char    *cp;
++/*
++                if ( p->bOld_style_uid == FALSE )
++                    MD5Update ( &mdContext, (unsigned char *)frombuf, 
++                                strlen(frombuf) );
++*/
++
++		    /* Figure out our UIDL for this msg from the filename */
++		    ouruidl[0] = 0;
++/*		    DEBUG_LOG1 (p, "Got UIDL string : %s\n", ouruidl); */
++		    strncpy(ouruidl, maildir_calc_msg_uidl(dp->d_name), 256);
++/*		    DEBUG_LOG1 (p, "Got UIDL string2: %s\n", ouruidl); */
++                    MD5Update ( &mdContext, (unsigned char *)ouruidl, 
++                                strlen(ouruidl) );
++
++                    MD5Final ( digest, &mdContext );
++                    cp = mp->uidl_str;
++                    cp = encode_uid_hash ( cp, digest, p->bOld_style_uid );
++                    *cp++ = '\n';
++                    *cp   = '\0';
++                    
++                    DEBUG_LOG2 ( p, "UID not found; generated UID(%d): %s",
++                                    strlen(mp->uidl_str), mp->uidl_str );
++
++                    mp->length   += strlen("X-UIDL: ") + strlen(mp->uidl_str) +1;
++                    p->drop_size += strlen("X-UIDL: ") + strlen(mp->uidl_str) +1;
++
++                    /* New UIDs do not dirty the mailspool unless
++                     * bUpdate_status_hdrs is set.  They are just recalculated
++                     * each time Qpopper is run.
++                     */
++                    if ( p->bUpdate_status_hdrs )
++                        p->dirty = TRUE;
++                } /* !uidl_found */
++
++            } else if ( CONTENT_LENGTH && 
++                        !strncmp(buffer, "Content-Length:", 15) ) {
++                cont_len = atoi(buffer + 15);
++/*
++                MD5Update ( &mdContext, (unsigned char *)buffer, strlen(buffer) );
++*/
++                mp->lines++;
++                continue;   /* not part of the message size */
++            } else if ( !uidl_found && 
++                            ( !strncasecmp ( "Received:",   buffer,  9 ) ||
++                              !strncasecmp ( "Date:",       buffer,  5 ) ||
++                              !strncasecmp ( "Message-Id:", buffer, 11 ) ||
++                              !strncasecmp ( "Subject:",    buffer,  8 ) ||
++                              ( bInContHeader && bNewUIDs )
++                            )
++                      ) {
++/*
++                MD5Update ( &mdContext, (unsigned char *)buffer,
++                            strlen(buffer) );
++*/
++            } else if ( !strncasecmp("X-UIDL:", buffer, 7) ) {
++                if ( !uidl_found ) {
++                    char *cp;
++                    int len;
++
++                    /* 
++                     * Skip over header string 
++                     */
++                    cp = index ( buffer, ':' );
++                    if ( cp != NULL ) {
++                        cp++;
++                        while ( *cp && ( *cp == ' ' || *cp == '\t') ) 
++                            cp++;
++                    } else
++                        cp = "";
++
++                    len = strlen ( cp );
++                    if ( len >= MIN_UIDL_LENGTH && 
++                         len <= MAX_UIDL_LENGTH ) {
++                        uidl_found++;
++                        strlcpy ( mp->uidl_str, cp, sizeof(mp->uidl_str) );
++                        mp->length   += nchar + 1;
++                        p->drop_size += nchar + 1;
++                        DEBUG_LOG1 ( p, "Found UIDL header: %s", buffer );
++                    }
++                    else
++                        DEBUG_LOG4 ( p, "Ignoring UIDL header: %s "
++                                        "(len=%d; min=%d; max=%d)",
++                                     buffer, len, MIN_UIDL_LENGTH, 
++                                     MAX_UIDL_LENGTH );
++                } /* !uidl_found */
++            
++                mp->lines++;
++                continue;  /* Do not include this value in the message size */
++            } else if ( (strncasecmp(buffer, "Status:", 7) == 0) ) {
++                if ( index(buffer, 'R') != NULL ) {
++                    mp->retr_flag = TRUE;
++                    mp->orig_retr_state = TRUE;
++                }
++            }
++            if ( p->bUW_kluge && msg_num == 1 ) {
++                if ( strncasecmp ( buffer, "Subject: ", 9  ) == 0   &&
++                      ( strstr ( buffer, "DO NOT DELETE"             ) != NULL ||
++                        strstr ( buffer, "DON'T DELETE THIS MESSAGE" ) != NULL ||
++                        strstr ( buffer, "FOLDER INTERNAL DATA"      ) != NULL  
++                      )
++                   ) {
++                    uw_hint++;
++                    DEBUG_LOG2 ( p, "uw_hint now %i; UW_KLUDGE matched '%.64s'",
++                                 uw_hint, buffer );
++                } else
++                if ( strncasecmp ( buffer, "X-IMAP: ", 8 ) == 0 ) {
++                    uw_hint++;
++                    DEBUG_LOG2 ( p, "uw_hint now %i; UW_KLUDGE matched '%.64s'",
++                                 uw_hint, buffer );
++                } else
++                if ( strncasecmp ( buffer, "From: Mail System Internal Data", 31 ) == 0 ) {
++                    uw_hint++;
++                    DEBUG_LOG2 ( p, "uw_hint now %i; UW_KLUDGE matched '%.64s'",
++                                 uw_hint, buffer );
++                }
++                if ( uw_hint == 2 ) {
++                    mp->hide_flag = 1;
++                    p->first_msg_hidden = 1;
++                    DEBUG_LOG0 ( p, "UW_KLUDGE check matched 2 conditions; msg hidden" );
++                }
++            } /* UW_KLUDGE && msg_num == 1 */
++        } /* bInHeader */
++        else { /* not bInHeader */
++            content_nchar += nchar;
++            mp->body_lines++;
++        }
++           
++        mp->length   += nchar + 1;
++        p->drop_size += nchar + 1;
++        mp->lines++;
++
++    } /* mfgets */
++    fclose(fp);
++
++ } /* readdir */
++
++ (void) closedir (dirp);
++
++} /* countdir */
++
++} /* if MAILDIR_DROP */
++else {
++
++    DEBUG_LOG1 ( p, "DROPINFO Checking file %s", fname );
+ 
+ #ifdef NULLKLUDGE
+     {
+@@ -749,6 +1094,8 @@
+         mp->lines++;
+     } /* for loop */
+ 
++} /* else != MAILDIR_DROP */
++
+     p->msg_count = msg_num;
+     p->visible_msg_count = visible_msg_num;
+ 
+@@ -1203,6 +1550,14 @@
+     int                     rslt;
+     time_t                  time_locked = 0;
+     time_t                  my_timer    = 0;
++         char    buffer [ MAXLINELEN ];
++         mode_t  my_umask;
++         mode_t  spool_mode;
++         mode_t  temp_mode = 0x1C0;
++         uid_t   spool_owner;
++         gid_t   spool_group;
++         char   *ptr;
++         
+ 
+ 
+     if ( p->bDo_timing )
+@@ -1212,6 +1567,8 @@
+         return pop_msg ( p, POP_FAILURE, HERE, 
+                          "[SYS/TEMP] Unable to get spool name" );
+ 
++/* CYGNUS */
++ if (p->MaildropType != MAILDIR_DROP) {
+     if ( ( p->hash_spool > 0 || p->pHome_dir_mail != NULL )
+          && p->bCheck_old_spool_loc ) {
+         /*  
+@@ -1253,6 +1610,7 @@
+     }
+ 
+     DEBUG_LOG1 ( p, "Temporary maildrop name: '%s'", p->temp_drop );
++ } /* != MAILDIR_DROP */
+ 
+ #ifdef BULLDB
+     if ( p->bulldir != NULL ) {
+@@ -1304,18 +1662,9 @@
+     } /* if (p->bulldir) */
+ #endif /* BULLDB */
+ 
+-    if ( p->hash_spool > 0 && p->bCheck_hash_dir ) {
+-        /* 
+-         * Make sure the path to the spool file exists 
+-         */
+-         char    buffer [ MAXLINELEN ];
+-         mode_t  my_umask;
+-         mode_t  spool_mode;
+-         mode_t  temp_mode = 0x1C0;
+-         uid_t   spool_owner;
+-         gid_t   spool_group;
+-         char   *ptr;
+-         
++/* we do this here because we need it for VIRTUAL DOMAIN setup */
++/* AND/OR hashed directories */
++
+         /*
+          * Get the path name.
+          */
+@@ -1353,6 +1702,50 @@
+                      (unsigned int) my_umask, 0000, (int) getuid(),
+                      (int) geteuid() );
+ 
++#ifdef MYSQLAUTH
++/* we need to create the virtual domain directory if it doesn't exist */
++	if (strcmp(p->domain,"NULL")) {
++	  if (p->hash_spool > 0) {
++		ptr=strdup(buffer);
++		ptr[strlen(ptr)-(p->hash_spool*2)]='\0';
++	  } /* p->hash_spool */
++	  else ptr=strdup(buffer);
++
++                if ( stat ( ptr, &mybuf ) == -1 && errno == ENOENT ) {
++                    /* The directory doesn't exit -- create it */
++                    if ( mkdir ( ptr, temp_mode ) == -1 )
++                        return pop_msg ( p, POP_FAILURE, HERE,
++                                         "[SYS/TEMP] Unable to create virtual spool directory "
++                                         "%s (%04o): %s (%d)",
++                                         ptr, (int) temp_mode, STRERROR(errno), errno );
++                    if ( chmod ( ptr, spool_mode ) == -1 )
++                        return pop_msg ( p, POP_FAILURE, HERE,
++                                        "[SYS/TEMP] Unable to chmod of %s to %04o: "
++                                        "%s (%d)",
++                                        ptr, (int) spool_mode, STRERROR(errno), errno );
++                    if ( chown ( ptr, spool_owner, spool_group ) == -1 )
++                        return pop_msg ( p, POP_FAILURE, HERE,
++                                        "[SYS/TEMP] Unable to set owner/group of spool "
++                                        "directory %s to %d/%d: %s (%d)",
++                                        ptr, (int) spool_owner, (int) spool_group, 
++                                        STRERROR(errno), errno );
++
++                    if ( DEBUGGING ) {
++                        if ( stat ( ptr, &mybuf ) != 0 )
++                            return pop_msg ( p, POP_FAILURE, HERE, 
++                                            "[SYS/TEMP] Unable to access newly-created "
++                                            "virtual dir %s: %s (%d)",
++                                            ptr, STRERROR(errno), errno );
++                        DEBUG_LOG4 ( p, "Created %s; mode=%04o; owner=%d; group=%d",
++                                     ptr, (unsigned int) mybuf.st_mode,
++                                     (int) mybuf.st_uid, (int) mybuf.st_gid );
++                    } /* DEBUGGING */
++                } /* directory doesn't exit */
++                *ptr = '/';
++	} /* virtual domain exists */
++#endif
++
++    if ( p->hash_spool > 0 && p->bCheck_hash_dir ) {
+        /*
+         * In theory, we could just create the new directories with mkdir(2)
+         * or mknod(2), and pass in the desired mode.  But this causes
+@@ -1408,7 +1801,7 @@
+                              buffer );
+             }
+         } /* HASH_SPOOL == 2 */
+-        
++
+         if ( stat ( buffer, &mybuf ) == -1 && errno == ENOENT ) {
+             /* The directory doesn't exit -- create it */
+             DEBUG_LOG2 ( p, "HASH_SPOOL; Creating spool path: %s (mode %04o)",
+@@ -1447,6 +1840,13 @@
+         DEBUG_LOG1 ( p, "umask now %04o", (unsigned int) my_umask );
+     } /* p->hash_spool > 0 && bCheck_hash_dir */
+ 
++/* CYGNUS */
++    if ( p->MaildropType == MAILDIR_DROP && p->bCheck_maildir_dir) {
++	/* In a maildir setup the GNPH_SPOOL is actually a directory    */
++	/* not a file, so, if requested, we need to check if that needs */
++	/* creation too, as well as new, cur, and tmp                   */
++	maildir_create(p, temp_mode, spool_mode, spool_owner, spool_group);
++    } /* p->MaildropType == MAILDIR_DROP && bCheck_maildir_dir */
+ 
+     /*
+      * Here we work to make sure the user doesn't cause us to remove or
+@@ -1456,14 +1856,25 @@
+ 
+     p->orig_group = pwp->pw_gid; /* save original group */
+ 
++        DEBUG_LOG1 ( p, "saving old gid %d", p->orig_group);
++
++#ifdef MYSQLAUTH
++	/* dont do anything, we want to keep our pw_gid */
++#else
+ #ifdef BINMAIL_IS_SETGID
+ #  if BINMAIL_IS_SETGID > 1
+    pwp->pw_gid = (gid_t)BINMAIL_IS_SETGID;
++        DEBUG_LOG1 ( p, "setting new gid to binmail gid of %d", pwp->pw_gid);
+ #  else
+-   if ( !stat(p->pCfg_spool_dir, &mybuf) )
++   if ( !stat(p->pCfg_spool_dir, &mybuf) ) {
+        pwp->pw_gid = mybuf.st_gid;
++        DEBUG_LOG1 ( p, "setting new gid to spooldir gid of %d", pwp->pw_gid);
++	}
+ #  endif /* BINMAIL_IS_SETGID > 1 */
++#else
++        DEBUG_LOG1 ( p, "setting new gid to old saved gid of %d", pwp->pw_gid);
+ #endif /* BINMAIL_IS_SETGID */
++#endif /* MYSQLAUTH */
+ 
+     /* 
+      * Now we run as the user. 
+@@ -1483,6 +1894,49 @@
+                  (long unsigned) getgid(),
+                  (long unsigned) geteuid(),
+                  (long unsigned) getegid() );
++
++/* CYGNUS */
++if (p->MaildropType == MAILDIR_DROP) {
++    /*
++     * Allocate memory for message information structures and this is
++     * not deleted since a failure, for some reason in this function
++     * would result in process death. 
++     */
++    p->mlp = (MsgInfoList *) calloc ( (unsigned) ALLOC_MSGS, sizeof(MsgInfoList) );
++    if ( p->mlp == NULL ){
++        return pop_msg ( p, POP_FAILURE, HERE,
++                         "[SYS/TEMP] Can't allocate memory for message list." );
++    }
++
++    p->msg_count = 0;
++    p->visible_msg_count = 0;
++    p->drop_size = 0;
++    p->drop = NULL;
++    time_locked = time(0);
++
++    rslt = init_dropinfo ( p, p->drop_name, p->drop, time_locked );
++    if ( rslt != POP_SUCCESS ) return ( POP_FAILURE );
++
++    if ( DEBUGGING && p->debug && p->msg_count > 0 ) {
++        register int    i;
++        MsgInfoList    *mp; 
++                           
++        for ( i = 0, mp = p->mlp; i < p->msg_count; i++, mp++ )
++            pop_log ( p, POP_DEBUG, HERE,
++                      "Msg %d (%d) uidl '%s' at offset %ld is %ld octets "
++                      "long%.*s and has %d lines.",
++                      mp->number, mp->visible_num, 
++                      mp->uidl_str, mp->offset, mp->length,
++                      (mp->hide_flag ? 9 : 0), " (hidden)",
++                      mp->lines );
++    }
++
++    if ( p->bDo_timing )
++        p->init_time = time(0) - my_timer;
++
++    return ( POP_SUCCESS );
++} /* == MAILDIR_DROP */
++
+ 
+     dfd = open ( p->temp_drop, O_RDWR | O_CREAT, 0660 );
+     if ( dfd == -1 ) {
+diff -ruN qpopper4.0.4/popper/pop_init.c qpopper4.0.4-mysql-0.6/popper/pop_init.c
+--- qpopper4.0.4/popper/pop_init.c	Wed Jul 25 12:01:17 2001
++++ qpopper4.0.4-mysql-0.6/popper/pop_init.c	Tue Jan 14 12:24:21 2003
+@@ -524,6 +524,22 @@
+     DEBUG_LOG0 ( p, "Omitting check for hashed spool directories" );
+ #endif /* not DONT_CHECK_HASH_SPOOL_DIR */
+ 
++/* CYGNUS */
++#ifndef       DONT_CHECK_MAILDIR_DIR
++    p->bCheck_maildir_dir     = TRUE;
++#else
++    DEBUG_LOG0 ( p, "Omitting check for maildir spool directories" );
++#endif /* not DONT_CHECK_MAILDIR_DIR */
++
++/* CYGNUS */
++#ifdef    MAILDROP_TYPE
++    p->MaildropType = (maildrop_type) MAILDROP_TYPE;
++    DEBUG_LOG1 ( p, "Maildrop type is %d", MAILDROP_TYPE);
++#else
++    /* default to mbox style drops */
++    p->MaildropType = (maildrop_type) MBOX_DROP;
++#endif
++
+ #ifdef    CHECK_UW_KLUDGE
+     p->bUW_kluge           = TRUE;
+     DEBUG_LOG0 ( p, "Checking for and hiding UW folder status messages" );
+diff -ruN qpopper4.0.4/popper/pop_list.c qpopper4.0.4-mysql-0.6/popper/pop_list.c
+--- qpopper4.0.4/popper/pop_list.c	Tue Feb 20 17:15:19 2001
++++ qpopper4.0.4-mysql-0.6/popper/pop_list.c	Tue Jan 14 12:24:21 2003
+@@ -37,6 +37,7 @@
+ #include "popper.h"
+ #include "mmangle/mime.h"
+ #include "mmangle/mangle.h"
++#include "snprintf.h"
+ 
+ void 
+ mangle_count ( void *mstate, char *buf, long len )
+@@ -69,6 +70,8 @@
+     char                    buffer [ MAXMSGLINELEN ];
+     MimeParsePtr            mimeParse;
+     ManglerStateType        mangleState;
++    char		    filename[PATH_MAX];
++
+ 
+     /*  
+      * Were arguments provided ? 
+@@ -129,6 +132,15 @@
+                 return ( pop_msg ( p, POP_FAILURE, HERE,
+                                    "Syntax error in x-mangle" ) );
+             }
++		if (p->MaildropType == MAILDIR_DROP) {
++		 Qsnprintf(filename,sizeof(filename),"%s/%s",p->drop_name,mp->filename);
++		 if (!(p->drop = fopen(filename, "r"))) {
++		        DEBUG_LOG1 ( p, "Cannot open message file %s", filename);
++		        return ( pop_msg ( p, POP_FAILURE, HERE,
++       	                                "Cannot open message file" ) );
++		 }
++		}
++
+             mimeParse = MimeInit ( MangleMapper, &mangleState, p->drop );
+             fseek ( p->drop, mp->offset, 0 );
+             /* 
+@@ -143,6 +155,8 @@
+             MimeFinish ( mimeParse );
+         }
+ 
++	if (p->MaildropType == MAILDIR_DROP) fclose ( p->drop );
++
+         /*  
+          * Display message information 
+          */
+@@ -181,6 +195,14 @@
+             mangleState.outFnConstructor  = mangleState.outFnDestructor 
+                                           = NULL;
+             FillMangleInfo ( p->pop_parm[1], 0, &mangleState.rqInfo );
++		if (p->MaildropType == MAILDIR_DROP) {
++		 Qsnprintf(filename,sizeof(filename),"%s/%s",p->drop_name,mp->filename);
++		 if (!(p->drop = fopen(filename, "r"))) {
++		        DEBUG_LOG1 ( p, "Cannot open message file %s", filename);
++		        return ( pop_msg ( p, POP_FAILURE, HERE,
++       	                                "Cannot open message file" ) );
++		 }
++		}
+             mimeParse = MimeInit ( MangleMapper, &mangleState, p->drop );
+             fseek ( p->drop, mp->offset, 0 );
+             /* 
+@@ -193,6 +215,7 @@
+             }
+             FreeMangleInfo ( &mangleState.rqInfo );
+             MimeFinish ( mimeParse );
++	    if (p->MaildropType == MAILDIR_DROP) fclose ( p->drop );
+         } /* show_mangled_length */
+ 
+         pop_write_fmt ( p, "%u %lu\r\n", 
+diff -ruN qpopper4.0.4/popper/pop_pass.c qpopper4.0.4-mysql-0.6/popper/pop_pass.c
+--- qpopper4.0.4/popper/pop_pass.c	Fri Jun  1 18:54:47 2001
++++ qpopper4.0.4-mysql-0.6/popper/pop_pass.c	Tue Jan 14 12:24:21 2003
+@@ -124,6 +124,26 @@
+ #include <pwd.h>
+ #include "popper.h"
+ 
++/*      
++ * Some old OSes don't have srandom, but do have srand
++ */
++#ifndef   HAVE_SRANDOM
++#  include <stdlib.h>
++#  define srandom srand
++#  define  random  rand
++#else
++   extern void srandom();
++#endif /* HAVE_SRANDOM */
++
++#ifdef MYSQLAUTH
++#  include "md5.h"
++#  define MYSQL_CRYPT_LEN 65
++#endif /* MYSQLAUTH */
++
++#ifdef LOG_LOGIN_MYSQL
++#  include <mysql.h>
++#endif
++
+ #ifdef KERBEROS
+ #  ifdef KRB5
+ #  include <krb5.h>
+@@ -1264,6 +1284,26 @@
+     *secretkey = '\0';
+ #endif /* SECURENISPLUS */
+ 
++#ifdef MYSQLAUTH
++    int crypto_crypt = 0, crypto_mysql = 0, crypto_md5 = 0, crypto_plain = 0;
++    register char *cp2;
++    char    buffer[BUFSIZ];
++    register unsigned char *dp;
++    unsigned char *ep, digest[16];
++    char *scrambled_password = NULL;
++    char crypted_pw[36];
++    char *userdomain;
++    MD5_CTX mdContext;
++#endif /* MYSQLAUTH */
++
++#ifdef LOG_LOGIN_MYSQL
++    MYSQL mysql;
++    #define QBUF_LEN 255
++    char qbuf[QBUF_LEN];
++    MYSQL_RES *result;
++    unsigned int num_rows;
++#endif
++
+     /* 
+      * Is the user not authorized to use POP? 
+      */
+@@ -1291,6 +1331,132 @@
+         return ( pop_msg ( p, POP_FAILURE, HERE, ERRMSG_PW, p->user ) );
+     }
+ 
++#ifdef MYSQLAUTH
++    DEBUG_LOG6 ( p,
++                  "%s: pop_pass sql data: pw_name=\"%s\" pw_passwd=\"xxx\" pw_dir=\"%s\" pw_uid=\"%d\" pw_gid=\"%d\" pw_shell=\"%s\"",
++                  p->user,
++                  pwp->pw_name,
++                  pwp->pw_dir,
++                  pwp->pw_uid,
++                  pwp->pw_gid,
++                  pwp->pw_shell
++                );
++
++    userdomain = (char *)malloc(strlen(p->user)+strlen(p->domain)+2);
++    strcpy(userdomain,p->user);
++    if (strcmp(p->domain,"NULL")) {
++     strcat(userdomain,"@");
++     strcat(userdomain,p->domain);
++    }
++
++/* Set all of the relevant authentication methods to try */
++    if (!strcmp(mysqlauth_password_method,"any")) {
++	crypto_crypt++;
++	crypto_mysql++;
++	crypto_md5++;
++	crypto_plain++;
++    }
++    else if (!strcmp(mysqlauth_password_method,"both")) {
++	/* for backwards compatibility */
++	crypto_crypt++;
++	crypto_plain++;
++    }
++    else if (!strcmp(mysqlauth_password_method,"crypt")) {
++	crypto_crypt++;
++    }
++    else if (!strcmp(mysqlauth_password_method,"mysql")) {
++	crypto_mysql++;
++    }
++    else if (!strcmp(mysqlauth_password_method,"md5")) {
++	crypto_md5++;
++    }
++    else if (!strcmp(mysqlauth_password_method,"cleartext")) {
++	crypto_plain++;
++    }
++    else {
++	/* default to plaintext */
++	crypto_plain++;
++    }
++
++    if (crypto_crypt != 0) {
++	strcpy(crypted_pw, crypt(p->pop_parm[1], pwp->pw_passwd));
++
++        if (!strcmp(pwp->pw_passwd,crypted_pw)) {
++	    DEBUG_LOG3 ( p, "%s: succcessful crypt sql authentication for user %s (%s)",
++	    p->user, userdomain, pwp->pw_name);
++	    goto auth_ok;
++        }
++    } /* crypto_crypt */
++    if (crypto_mysql != 0) {
++	unsigned int t;
++	unsigned char t1, t2;
++
++	if ((scrambled_password = 
++	     malloc((size_t) (MYSQL_CRYPT_LEN + 2))) == NULL) {
++	    pop_log(p, POP_FAILURE, HERE, 
++	    "%s: crypto_mysql: bad malloc for scrambled_password!",p->user);
++	    goto auth_bad;
++	}
++        /* seed random with the current time to nearest second    */
++        srandom( (unsigned int) time((TIME_T *)0) );
++
++        t = random();
++        t1 = t & 0xff;
++        t2 = (t >> 8) & 0xff;
++        scrambled_password[MYSQL_CRYPT_LEN] = (char) t1;
++        scrambled_password[MYSQL_CRYPT_LEN + 1] = (char) t2;
++        make_scrambled_password(scrambled_password, p->pop_parm[1]);
++        if ((unsigned char) scrambled_password[MYSQL_CRYPT_LEN] != t1 ||
++            (unsigned char) scrambled_password[MYSQL_CRYPT_LEN + 1] != t2) {
++            for (;;) { 
++                *scrambled_password++ = 0;
++            }
++        }
++
++        if (!strcmp(pwp->pw_passwd,scrambled_password)) {
++	    DEBUG_LOG3 ( p, "%s: succcessful mysql sql authentication for user %s (%s)",
++	    p->user, userdomain, pwp->pw_name);
++	    goto auth_ok;
++        }
++    } /* crypto_mysql */
++    if (crypto_md5 != 0) {
++        
++	MD5Init   ( &mdContext );
++	if (p->pop_parm[1] != NULL && *p->pop_parm[1] != 0) {
++	 MD5Update ( &mdContext, (unsigned char *) p->pop_parm[1], strlen(p->pop_parm[1]) );
++	}
++	MD5Final  ( digest, &mdContext );
++
++    cp2 = buffer;
++    for (ep = (dp = digest) + sizeof digest / sizeof digest[0];
++             dp < ep; 
++             cp2 += 2)
++        (void) sprintf (cp2, "%02x", *dp++ & 0xff);
++    *cp2 = '\0';
++
++	if (!strcmp(pwp->pw_passwd, buffer)) {
++	    DEBUG_LOG3 ( p, "%s: succcessful md5 sql authentication for user %s (%s)",
++	    p->user, userdomain, pwp->pw_name);
++	    goto auth_ok;
++        }
++    } /* crypto_md5 */
++    if (crypto_plain != 0) {
++        if (!strcmp(pwp->pw_passwd,p->pop_parm[1])) {
++	    DEBUG_LOG3 ( p, "%s: succcessful cleartext sql authentication for user %s (%s)",
++	    p->user, userdomain, pwp->pw_name);
++	    goto auth_ok;
++        }
++    } /* crypto_plain */
++	/* if we get here, authentication failed */
++	auth_bad:
++	sleep(SLEEP_SECONDS);
++	return (pop_msg(p,POP_FAILURE, HERE, ERRMSG_PW, userdomain));
++
++auth_ok:
++	DEBUG_LOG3 ( p, "%s: end of sql authentication for user %s (%s)",
++	p->user, userdomain, pwp->pw_name);
++#else /* not MYSQLAUTH */
++
+ #ifdef SECURENISPLUS
+     /*  
+      * we must do this keyserv stuff (as well as auth_user()!) as the user 
+@@ -1387,6 +1553,8 @@
+     seteuid ( uid_save );
+ #endif /* SECURENISPLUS */
+ 
++#endif /* MYSQLAUTH */
++
+     /*
+      * Check if server mode should be set or reset based on group membership.
+      */
+@@ -1436,6 +1604,81 @@
+      * Authorization completed successfully 
+      */
+ 
++#ifdef LOG_LOGIN_MYSQL
++    DEBUG_LOG1 ( p, "%s: Doing log-login sql", p->user);
++    mysql_init(&mysql);
++    if(!mysql_real_connect(&mysql,mysqlauth_host,mysqlauth_username,
++                              mysqlauth_password, mysqlauth_db,
++                              atoi(mysqlauth_port), NULL, 0 )) {
++        pop_log(p, POP_FAILURE, HERE,
++              "Couldn't connect to the authentication database (%s) ",
++              mysql_error(&mysql));
++        return(pop_msg(p, POP_FAILURE, HERE,
++                "Couldn't connect to the authentication database"));
++    }
++    else {
++        DEBUG_LOG5 ( p, "%s: Connected to %s:%s db %s as %s for log-login",
++        p->user,mysqlauth_host,mysqlauth_port,mysqlauth_db,mysqlauth_username);
++    }
++     snprintf(qbuf, QBUF_LEN,
++              "SELECT ip FROM relay_ip WHERE ip = '%s'",p->ipaddr);
++     if (mysql_query(&mysql, (char *)qbuf) < 0) {
++         pop_log(p, POP_FAILURE, HERE, "query (%s) failed (%s)", qbuf,
++                  mysql_error(&mysql));
++         mysql_close(&mysql);
++         return(pop_msg(p, POP_FAILURE, HERE, "Logging query check failure"));
++     }
++    else {
++        DEBUG_LOG3 ( p, "%s: Ran log-login sql query \"%s\" against db %s",
++        p->user, qbuf, mysqlauth_db);
++    }
++    if(!(result = mysql_store_result(&mysql))) {
++        pop_log(p, POP_FAILURE, HERE, "Logging query check result failed (%s)", mysql_error(&mysql));
++        mysql_close(&mysql);
++        return(pop_msg(p, POP_FAILURE, HERE, "Logging query check result failed"));
++    }
++    else {
++        DEBUG_LOG2 ( p, "%s: Successfully got log-login sql result from db %s",
++        p->user, mysqlauth_db);
++    }
++    num_rows = mysql_num_rows(result);
++    mysql_free_result(result);
++    if (num_rows==0) {
++       /* make new row */
++     snprintf(qbuf, QBUF_LEN,
++              "INSERT INTO relay_ip (ip, ts) VALUES ('%s','%ld')",
++              p->ipaddr,time(0));
++     if (mysql_query(&mysql, (char *)qbuf) < 0) {
++         pop_log(p, POP_FAILURE, HERE, "query (%s) failed (%s)", qbuf,
++                  mysql_error(&mysql));
++         mysql_close(&mysql);
++         return(pop_msg(p, POP_FAILURE, HERE, "Logging query new failure"));
++     }
++     else {
++        DEBUG_LOG3 ( p, "%s: Ran log-login sql query \"%s\" against db %s",
++        p->user, qbuf, mysqlauth_db);
++     }
++    } /* if !num_rows */
++    else {
++       /* update row with current ts */
++     snprintf(qbuf, QBUF_LEN,
++              "UPDATE relay_ip SET ts = '%ld' WHERE ip = '%s'",
++               time(0),p->ipaddr);
++     if (mysql_query(&mysql, (char *)qbuf) < 0) {
++         pop_log(p, POP_FAILURE, HERE, "query (%s) failed (%s)", qbuf,
++                  mysql_error(&mysql));
++         mysql_close(&mysql);
++         return(pop_msg(p, POP_FAILURE, HERE, "Logging query update failure"));
++     }
++     else {
++        DEBUG_LOG3 ( p, "%s: Ran log-login sql query \"%s\" against db %s",
++        p->user, qbuf, mysqlauth_db);
++     }
++    } /* else */
++     mysql_close(&mysql);
++    DEBUG_LOG1 ( p, "%s: Done doing log-login sql", p->user);
++#endif
++
+     if ( p->pLog_login != NULL )
+         do_log_login ( p );
+ 
+@@ -1451,4 +1694,5 @@
+                         (p->msg_count - p->visible_msg_count),
+                         p->drop_size ) );
+ }
++
+ 
+diff -ruN qpopper4.0.4/popper/pop_send.c qpopper4.0.4-mysql-0.6/popper/pop_send.c
+--- qpopper4.0.4/popper/pop_send.c	Tue Aug 14 05:28:37 2001
++++ qpopper4.0.4-mysql-0.6/popper/pop_send.c	Tue Jan 14 12:24:21 2003
+@@ -274,6 +274,7 @@
+     int                     check_body  = 0;
+     int                     check_bytes = 0;
+     long                    check_total = total_octets_sent;
++    char                    filename[PATH_MAX];
+ 
+ 
+     /*  
+@@ -367,6 +368,15 @@
+                             mp->body_lines - 1
+                             );
+ 
++if (p->MaildropType == MAILDIR_DROP) {
++ Qsnprintf(filename,sizeof(filename),"%s/%s",p->drop_name,mp->filename);
++ if (!(p->drop = fopen(filename, "r"))) {
++	DEBUG_LOG1 ( p, "Cannot open message file %s", filename);
++	return ( pop_msg ( p, POP_FAILURE, HERE,
++        	                       "Cannot open message file" ) );
++ }
++}
++
+     /* 
+      * Set up the header mucker and possibly the Mime mangler 
+      */
+@@ -405,7 +415,8 @@
+     /*  
+      * Skip the first line (the sendmail "From" or MMDF line) 
+      */
+-    (void) fgets ( buffer, MAXMSGLINELEN, p->drop );
++    if (p->MaildropType != MAILDIR_DROP)
++     (void) fgets ( buffer, MAXMSGLINELEN, p->drop );
+ 
+     /* Some poorly-written clients (reported to include Netscape Messenger)
+      * expect the octet count to be in the OK response to RETR, which is of
+@@ -491,8 +502,10 @@
+          */
+         MimeFinish ( mimeParse );
+     }
+-    if ( hangup )
++    if ( hangup ) {
++	if (p->MaildropType == MAILDIR_DROP) fclose( p->drop );
+         return ( pop_msg ( p, POP_FAILURE, HERE, "SIGHUP or SIGPIPE flagged" ) );
++    }
+ 
+     /* 
+      * Make sure message ends with a CRLF 
+@@ -532,6 +545,7 @@
+                       mp->length, check_bytes, mp->number, p->drop_name );
+     }
+ 
++    if (p->MaildropType == MAILDIR_DROP) fclose( p->drop );
+     return ( POP_SUCCESS );
+ }
+ 
+diff -ruN qpopper4.0.4/popper/pop_uidl.c qpopper4.0.4-mysql-0.6/popper/pop_uidl.c
+--- qpopper4.0.4/popper/pop_uidl.c	Thu Apr  4 18:38:56 2002
++++ qpopper4.0.4-mysql-0.6/popper/pop_uidl.c	Tue Jan 14 12:24:21 2003
+@@ -51,6 +51,7 @@
+ #endif
+ 
+ #include "popper.h"
++#include "snprintf.h"
+ 
+ 
+ /*
+@@ -154,6 +155,16 @@
+ {
+   char *cp;
+   char *nl;
++  char filename[PATH_MAX];
++
++
++if (p->MaildropType == MAILDIR_DROP) {
++ Qsnprintf(filename,sizeof(filename),"%s/%s",p->drop_name,mp->filename);
++ if (!(p->drop = fopen(filename, "r"))) {
++        DEBUG_LOG1 ( p, "Cannot open message file %s", filename);
++        return ( "" );
++ }
++}
+ 
+     fseek ( p->drop, mp->offset, 0 );
+     while ( fgets ( buf, len, p->drop ) != NULL ) {
+@@ -165,9 +176,11 @@
+         nl = index ( cp, NEWLINE );
+         if ( nl != NULL ) 
+             *nl = 0;
++	if (p->MaildropType == MAILDIR_DROP) fclose( p->drop );
+         return ( cp );
+       }
+     }
++    if (p->MaildropType == MAILDIR_DROP) fclose( p->drop );
+     return ( "" );
+ }
+ 
+diff -ruN qpopper4.0.4/popper/pop_updt.c qpopper4.0.4-mysql-0.6/popper/pop_updt.c
+--- qpopper4.0.4/popper/pop_updt.c	Thu Apr  4 18:38:58 2002
++++ qpopper4.0.4-mysql-0.6/popper/pop_updt.c	Tue Jan 14 12:24:21 2003
+@@ -119,6 +119,7 @@
+ #endif
+ 
+ #include "misc.h"
++#include "maildir.h"
+ 
+ extern int      errno;
+ 
+@@ -258,6 +259,8 @@
+     time_t                  my_timer    = time(0);  /*  For timing */
+ 
+ 
++    if ( p->MaildropType == MAILDIR_DROP ) return ( maildir_updt ( p ) );
++
+     if ( p->bAuto_delete && p->bUpdate_on_abort == FALSE )
+     {
+         /* 
+@@ -890,6 +893,8 @@
+   time_t  my_timer      = time(0);
+ 
+     DEBUG_LOG0 ( p, "Performing maildrop restoration..." );
++
++    if ( p->MaildropType == MAILDIR_DROP ) return ( POP_SUCCESS );
+ 
+     /*
+      * Undelete any deleted messages so cache is correct.
+diff -ruN qpopper4.0.4/popper/pop_user.c qpopper4.0.4-mysql-0.6/popper/pop_user.c
+--- qpopper4.0.4/popper/pop_user.c	Wed Jul 25 16:59:09 2001
++++ qpopper4.0.4-mysql-0.6/popper/pop_user.c	Tue Jan 14 12:24:21 2003
+@@ -98,6 +98,11 @@
+ #include "popper.h"
+ #include "string_util.h"
+ 
++#ifdef MYSQLAUTH
++#  include <mysql.h>
++#  define SLEEP_SECONDS	10
++#endif
++
+ /* 
+  * When AUTHON is defined, SCRAM and/or APOP authentication is available.
+  */
+@@ -114,6 +119,14 @@
+ 
+ extern char    *ERRMSG_PW;
+ 
++/* 
++ * MYSQLAUTH STUFF
++ */
++char   *ERRMSG_ACCT  = "[AUTH] \"%s\": %s account";
++char   *ERRMSG_NULL  = "[AUTH] \"%s\": %s field is NULL!";
++char   *ERRMSG_QUERY = "[AUTH] \"%s\": Authentication query failed. Account may not exist.";
++#define MYSQL_DEFAULT_HOMEDIR	"/home"
++
+ 
+ /* 
+  *  user:   Prompt for the user name at the start of a POP session
+@@ -141,7 +154,23 @@
+     int         i;
+     int         bFoundUser = FALSE;
+ #endif /* AUTHON */
++#ifdef MYSQLAUTH
++    MYSQL mysql;
++    #define QBUF_LEN 255
++    char qbuf[QBUF_LEN];
++    char *mqbuf;
++    MYSQL_RES *result;
++    MYSQL_ROW row;
++    int a=0;
++    int uid_field_num=0, gid_field_num=0, shell_field_num=0;
++    int acct_status_field_num=0, spool_field_num=0, acct_status;
++    int qbufleft;
++    int slen;
++    unsigned long *lengths;
++    char *userdomain;
++#endif
+ 
++    char *atpos;
+     size_t      user_name_len = 0;
+     struct      passwd *pw    = NULL;
+ 
+@@ -159,9 +188,13 @@
+     /*
+      * Trim domain name
+      */
+-    if ( p->bTrim_domain )
++    if ( p->bTrim_domain ) {
++#ifdef MYSQLAUTH
++	if (!mysqlauth_domain_field)
++#endif
+         trim_domain ( p, p->pop_parm[1] );
+-        
++    }
++
+ #if defined(KERBEROS) && defined(KRB4) && !defined(KUSEROK)
+     if ( p->bKerberos && strcmp(p->pop_parm[1], p->user) ) {
+         pop_log ( p, POP_WARNING, HERE, 
+@@ -199,7 +232,34 @@
+                   p->pop_parm[1] );
+         user_name_len = sizeof(p->user) -1;
+     }
++
++#ifdef MYSQLAUTH
++      if(mysqlauth_domain_field)
++      {
++         atpos=strrchr(p->pop_parm[1],'@');
++         if(!atpos) atpos=strrchr(p->pop_parm[1],'#');
++         if(atpos) {
++             int domain_name_len;
++             atpos++; /* Move passed the '@' */
++             domain_name_len = p->pop_parm[1]+strlen(p->pop_parm[1])-atpos;
++             strncpy(p->domain, atpos, domain_name_len);
++             pop_lower(p->domain);
++             user_name_len -= domain_name_len+1;
++             p->domain[domain_name_len] = 0;
++         } else {
++             /* No domain part - use default */
++             strcpy(p->domain, mysqlauth_default_domain);
++         }
++      }
++      else strcpy(p->domain, "NULL");
++
++	DEBUG_LOG3 ( p, "%s: Got virtual domain \"%s\" from user \"%s\"",
++	p->pop_parm[1], p->domain, p->pop_parm[1]);
++#endif
+     
++if (atpos)
++    strlcpy ( p->user,   p->pop_parm[1], user_name_len );
++else
+     strlcpy ( p->user,   p->pop_parm[1], sizeof(p->user) );
+ 
+ #ifdef    SCRAM
+@@ -210,6 +270,283 @@
+      * Cache passwd struct for use later; this memory gets freed at the end
+      * of the session.
+      */
++#ifdef MYSQLAUTH
++    userdomain = (char *)malloc(strlen(p->user)+strlen(p->domain)+2);
++    strcpy(userdomain,p->user);
++    if (strcmp(p->domain,"NULL")) {
++     strcat(userdomain,"@");
++     strcat(userdomain,p->domain);
++    }
++
++    mysql_init(&mysql);
++    if(!mysql_real_connect(&mysql,mysqlauth_host,mysqlauth_username,
++                              mysqlauth_password, mysqlauth_db,
++                              atoi(mysqlauth_port), NULL, 0 )) {
++        pop_log(p, POP_PRIORITY, HERE,
++              "Couldn't connect to the authentication database (%s) ",
++              mysql_error(&mysql)); 
++       return(pop_msg(p, POP_FAILURE, HERE,
++                "Couldn't connect to the authentication database"));
++    }
++    else {
++	DEBUG_LOG5 ( p, "%s: Connected to %s:%s db %s as %s for authentication",
++	userdomain,mysqlauth_host,mysqlauth_port,mysqlauth_db,mysqlauth_username);
++    }
++
++#define MYSTRCAT(STRING) do { strncpy(mqbuf, STRING, qbufleft);          \
++                              slen = strlen(STRING);                     \
++                              qbufleft -= slen;                          \
++                              mqbuf += slen; } while(0)
++
++#define MYSTRCATCHR(C)  do {                                            \
++                             if(qbufleft>0) {                            \
++                                 *mqbuf++=C;                             \
++                                *mqbuf = '\0';                          \
++                                 qbufleft--;                             \
++                              }                                          \
++                         } while(0)
++
++#define MYSTRCATESC(STRING) do {                                         \
++       slen = strlen(STRING);                                            \
++       slen = mysql_escape_string(mqbuf, STRING,                         \
++              (qbufleft/2 < slen ? qbufleft/2 : slen));                  \
++        mqbuf += slen;                                                   \
++        qbufleft -= slen;                                                \
++     } while(0)
++
++
++    mqbuf = qbuf;
++    qbufleft = QBUF_LEN-1;
++
++    MYSTRCAT("SELECT ");
++    MYSTRCAT(mysqlauth_password_field);
++    if(mysqlauth_uid_field) {
++       uid_field_num = ++a;
++       MYSTRCATCHR(',');
++       MYSTRCAT(mysqlauth_uid_field);
++    }
++    if(mysqlauth_gid_field) {
++       gid_field_num = ++a;
++       MYSTRCATCHR(',');
++       MYSTRCAT(mysqlauth_gid_field);
++    }
++    if(mysqlauth_shell_field) {
++       shell_field_num = ++a;
++       MYSTRCATCHR(',');
++       MYSTRCAT(mysqlauth_shell_field);
++    }
++    if(mysqlauth_acct_status_field) {
++        acct_status_field_num = ++a;
++       MYSTRCATCHR(',');
++       MYSTRCAT(mysqlauth_acct_status_field);
++    }
++    if(mysqlauth_spool_field) {
++       spool_field_num = ++a;
++       MYSTRCATCHR(',');
++       MYSTRCAT(mysqlauth_spool_field);
++    }
++
++
++    MYSTRCAT(" FROM ");
++    MYSTRCAT(mysqlauth_table);
++    MYSTRCAT(" WHERE ");
++    MYSTRCAT(mysqlauth_username_field);
++    MYSTRCAT("= '");
++    MYSTRCATESC(p->user);
++    MYSTRCATCHR('\'');
++    if(mysqlauth_domain_field) {
++        MYSTRCAT(" AND ");
++	MYSTRCAT(mysqlauth_domain_field);
++       MYSTRCAT(" = '");
++       MYSTRCATESC(p->domain);
++       MYSTRCATCHR('\'');
++    }
++
++    if (mysql_query(&mysql,(char *)qbuf) < 0) {
++        pop_log(p, POP_PRIORITY, HERE, "query (%s) failed (%s)", qbuf,
++               mysql_error(&mysql));
++        mysql_close(&mysql);
++        return(pop_msg(p, POP_FAILURE, HERE, "Authentication query failed"));
++    }
++    else {
++	DEBUG_LOG3 ( p, "%s: Ran sql query \"%s\" against db %s",
++	userdomain, qbuf, mysqlauth_db);
++    }
++
++    if(!(result = mysql_use_result(&mysql))) {
++        pop_log(p, POP_PRIORITY, HERE, "query result failed (%s)", mysql_error(&mysql));
++        mysql_close(&mysql);
++        return (pop_msg(p,POP_FAILURE, HERE, ERRMSG_QUERY, userdomain));
++    }
++    else {
++	DEBUG_LOG2 ( p, "%s: Successfully got sql result from db %s",
++	userdomain, mysqlauth_db);
++    }
++
++    if(!(row = mysql_fetch_row(result))) {
++        pop_log(p, POP_PRIORITY, HERE, "query fetch row failed (%s)", mysql_error(&mysql));
++        mysql_free_result(result);
++        mysql_close(&mysql);
++        sleep(SLEEP_SECONDS);
++        return (pop_msg(p,POP_FAILURE, HERE, ERRMSG_QUERY, userdomain));
++    }
++    else {
++	DEBUG_LOG1 ( p, "%s: Successfully got sql row from result", userdomain);
++    }
++  lengths = mysql_fetch_lengths(result);
++
++    if (mysqlauth_acct_status_field) {
++       /* check account status */
++       if (row[acct_status_field_num] != NULL)
++               acct_status=atoi(row[acct_status_field_num]);
++       else {
++               mysql_free_result(result);
++               mysql_close(&mysql);
++               sleep(SLEEP_SECONDS);
++               return (pop_msg(p,POP_FAILURE, HERE, ERRMSG_NULL, userdomain, "status"));
++       }
++
++	DEBUG_LOG2 ( p, "%s: sql acct_status is \"%d\"",
++	userdomain, acct_status);
++
++        if (acct_status != 1) {
++            mysql_free_result(result);
++            mysql_close(&mysql);
++            sleep(SLEEP_SECONDS);
++               switch(acct_status) {
++               case 0:
++                       return (pop_msg(p,POP_FAILURE, HERE, ERRMSG_ACCT, userdomain, "disabled"));
++                       break;
++               case 2:
++                       return (pop_msg(p,POP_FAILURE, HERE, ERRMSG_ACCT, userdomain, "suspended"));
++                       break;
++               case 3:
++                       return (pop_msg(p,POP_FAILURE, HERE, ERRMSG_ACCT, userdomain, "on-hold"));
++                       break;
++               } /* switch */
++       } /* acct_status bad */
++    } /* check status */
++
++    if (mysqlauth_shell_field) {
++       /* check shell field */
++       if (row[shell_field_num] == NULL) {
++               mysql_free_result(result);
++               mysql_close(&mysql);
++		DEBUG_LOG1 ( p, "%s: sql shell is NULL", userdomain);
++               sleep(SLEEP_SECONDS);
++               return (pop_msg(p,POP_FAILURE, HERE, ERRMSG_NULL, userdomain, "shell"));
++       }
++	else {
++	DEBUG_LOG2 ( p, "%s: sql shell is \"%s\"", userdomain, 
++	row[shell_field_num]);
++	}
++    } /* check shell */
++
++    if (mysqlauth_spool_field) {
++       /* check spool field */
++       if (row[spool_field_num] == NULL) {
++	DEBUG_LOG1 ( p, "%s: spool will be determined by server", userdomain);
++       }
++	else {
++	DEBUG_LOG2 ( p, "%s: sql spool is \"%s\"", userdomain, 
++	row[spool_field_num]);
++	}
++    } /* check spool */
++
++       /* make sure we can get a password for the check in pop_pass() later */
++       if (row[0] == NULL) {
++               mysql_free_result(result);
++               mysql_close(&mysql);
++		DEBUG_LOG1 ( p, "%s: sql password is NULL", userdomain);
++               sleep(SLEEP_SECONDS);
++               return (pop_msg(p,POP_FAILURE, HERE, ERRMSG_NULL, userdomain, "password"));
++       }
++	else {
++	DEBUG_LOG1 ( p, "%s: sql password is (hidden)", userdomain);
++	}
++
++    pw = (struct passwd *)malloc(sizeof(struct passwd));
++
++#if     defined(__bsdi__) && _BSDI_VERSION >= 199608
++    pw->pw_class = malloc(1);
++    pw->pw_class='\0';
++#endif
++
++    pw->pw_name = malloc(strlen(p->user)+2);
++    strcpy(pw->pw_name, p->user);
++
++    pw->pw_passwd = malloc(strlen(row[0])+2);
++    strcpy(pw->pw_passwd, row[0]);
++
++	/* non-virtual setup will return just POP_MAILDIR */
++	/* i.e. /var/spool/mail/ */
++	/* virtual setup will return POP_MAILDIR + domain */
++	/* i.e. /var/spool/mail/mydomain.com/ */
++	/* NOTE: hashing is done afterwards! */
++	/* so a virtual setup with a hash of 2 might result in */
++	/* /var/spool/mail/mydomain.com/u/s/user */
++    if ( p->pHome_dir_mail != NULL ) {
++	pw->pw_dir = malloc(strlen(MYSQL_DEFAULT_HOMEDIR)+2);
++	strcpy(pw->pw_dir, MYSQL_DEFAULT_HOMEDIR);
++	strcat(pw->pw_dir, "/");
++    }
++    else if (strcmp(p->domain,"NULL")) {
++	pw->pw_dir = malloc(strlen(POP_MAILDIR)+strlen(p->domain)+4);
++	strcpy(pw->pw_dir, POP_MAILDIR);
++	strcat(pw->pw_dir, "/");
++	strcat(pw->pw_dir,p->domain);
++	strcat(pw->pw_dir, "/");
++    }
++    else {
++	pw->pw_dir = malloc(strlen(POP_MAILDIR)+2);
++	strcpy(pw->pw_dir, POP_MAILDIR);
++    }
++
++    if(mysqlauth_shell_field) {
++        pw->pw_shell = malloc(strlen(row[shell_field_num])+2);
++        strcpy(pw->pw_shell, row[shell_field_num]);
++    } else {
++        pw->pw_shell = malloc(12);
++        strcpy(pw->pw_shell, "/bin/false");
++    }
++    if(mysqlauth_spool_field && row[spool_field_num] != NULL) {
++        p->spool_file = malloc(strlen(row[spool_field_num])+2);
++        strcpy(p->spool_file, row[spool_field_num]);
++	if (p->spool_file[strlen(p->spool_file)-1]=='/')
++	 p->spool_file[strlen(p->spool_file)-1]='\0';
++    } else {
++        p->spool_file = malloc(6);
++        strcpy(p->spool_file, "NULL");
++    }
++    if(mysqlauth_uid_field) {
++        pw->pw_uid = atoi(row[uid_field_num]);
++    } else {
++        pw->pw_uid = mysqlauth_uid;
++    }
++    if(mysqlauth_gid_field) {
++        pw->pw_gid = atoi(row[gid_field_num]);
++    } else {
++        pw->pw_gid = mysqlauth_gid;
++    }
++
++    mysql_free_result(result);
++    mysql_close(&mysql);
++    p->pw = *pw;
++
++    DEBUG_LOG6 ( p, 
++                  "%s: pop_user sql data: pw_name=\"%s\" pw_passwd=\"xxx\" pw_dir=\"%s\" pw_uid=\"%d\" pw_gid=\"%d\" pw_shell=\"%s\"",
++		  p->user,
++                  p->pw.pw_name,
++                  p->pw.pw_dir,
++                  p->pw.pw_uid,
++                  p->pw.pw_gid,
++                  p->pw.pw_shell
++		);
++
++    DEBUG_LOG3 ( p, "%s: home via mysql (%d): '%s'",
++                 p->user, strlen(p->pw.pw_dir), p->pw.pw_dir );
++
++#else /* not MYSQLAUTH */
+     pw = getpwnam ( p->user );               /* get pointer to info */
+     if ( pw != NULL ) {
+         p->pw        = *pw;                  /* copy it */
+@@ -217,6 +554,7 @@
+         DEBUG_LOG2 ( p, "home (%d): '%s'",
+                      strlen(p->pw.pw_dir), p->pw.pw_dir );
+     }
++#endif /* MYSQLAUTH */
+     
+ #ifdef SCRAM_ONLY
+     return ( pop_auth_fail ( p, POP_FAILURE, HERE, 
+diff -ruN qpopper4.0.4/popper/popper.c qpopper4.0.4-mysql-0.6/popper/popper.c
+--- qpopper4.0.4/popper/popper.c	Thu Apr  4 18:40:23 2002
++++ qpopper4.0.4-mysql-0.6/popper/popper.c	Tue Jan 14 12:24:21 2003
+@@ -117,6 +117,27 @@
+ 
+ int     pop_timeout = POP_TIMEOUT;
+ 
++#ifdef MYSQLAUTH
++char *mysqlauth_username;
++char *mysqlauth_password;
++char *mysqlauth_host;
++char *mysqlauth_port;
++char *mysqlauth_db;
++char *mysqlauth_table;
++char *mysqlauth_username_field;
++char *mysqlauth_password_field;
++char *mysqlauth_password_method;
++char *mysqlauth_gid_field;
++char *mysqlauth_uid_field;
++uid_t mysqlauth_uid;
++gid_t mysqlauth_gid;
++char *mysqlauth_domain_field;
++char *mysqlauth_default_domain;
++char *mysqlauth_acct_status_field;
++char *mysqlauth_shell_field;
++char *mysqlauth_spool_field;
++#endif
++
+ #ifdef _DEBUG
+   POP *global_debug_p = NULL;
+ #endif
+@@ -176,6 +197,11 @@
+  */
+     if ( pop_init ( &p, argc, argv ) != POP_SUCCESS )
+         EXIT ( 1 );
++
++#ifdef MYSQLAUTH
++     if (load_popper_conf(&p) != POP_SUCCESS)
++        EXIT( 1 );
++#endif
+ 
+     DEBUG_LOG1 ( &p, "before TLS; tls_support==%d",
+                  p.tls_support );
+diff -ruN qpopper4.0.4/popper/popper.h qpopper4.0.4-mysql-0.6/popper/popper.h
+--- qpopper4.0.4/popper/popper.h	Tue Jun  5 15:25:50 2001
++++ qpopper4.0.4-mysql-0.6/popper/popper.h	Tue Jan 14 12:24:21 2003
+@@ -61,6 +61,27 @@
+ 
+ #include <sys/socket.h> /* this needs to be after system .h files */
+ 
++#ifdef MYSQLAUTH
++extern char *mysqlauth_username;
++extern char *mysqlauth_password;
++extern char *mysqlauth_host;
++extern char *mysqlauth_port;
++extern char *mysqlauth_db;
++extern char *mysqlauth_table;
++extern char *mysqlauth_username_field;
++extern char *mysqlauth_password_field;
++extern char *mysqlauth_password_method;
++extern char *mysqlauth_domain_field;
++extern char *mysqlauth_default_domain;
++extern char *mysqlauth_gid_field;
++extern char *mysqlauth_uid_field;
++extern uid_t mysqlauth_uid;
++extern gid_t mysqlauth_gid;
++extern char *mysqlauth_acct_status_field;
++extern char *mysqlauth_shell_field;
++extern char *mysqlauth_spool_field;
++#endif
++
+ #ifdef BULLDB
+ #  undef    DBM     /* used by mts.c and ndbm.h */
+ #  ifdef GDBM
+@@ -90,7 +111,12 @@
+ #define TAB             9
+ #define NEWLINE         '\n'
+ 
+-#define MAXUSERNAMELEN  65
++#ifdef MYSQLAUTH
++#  define MAXUSERNAMELEN  128
++#  define MAXDOMAINNAMELEN 64
++#else
++#  define MAXUSERNAMELEN  65
++#endif
+ #define MAXDROPLEN      256
+ #define MAXLINELEN      1024
+ #define MAXMSGLINELEN   MAXLINELEN
+@@ -409,6 +435,14 @@
+     QPOP_SSLv23             /* TLSv1, SSLv3, and SSLv2 */
+ } tls_vers_type;
+ 
++/*
++ * Enumeration for which type of maildrop we are using
++ */
++typedef enum {
++    QPOP_MBOX_DROP = 0,
++    QPOP_MAILDIR_DROP
++} maildrop_type;
++
+ 
+ /*
+  * Enumeration for configuration option types
+@@ -504,6 +538,8 @@
+                                                     Used for RSET cmd. */
+     char        uidl_str [ (DIG_SIZE * 2) + 2 ];/*  Cache of the UIDL str for
+                                                     faster access */
++    char        filename[PATH_MAX];              /*  Filename of the file 
++						    this is if maildir */
+ } MsgInfoList;
+ 
+ typedef struct _pop POP;
+@@ -538,6 +574,9 @@
+     BOOL                bDowncase_user;         /*  TRUE to downcase user name */
+     BOOL                bTrim_domain;           /*  TRUE to trim domain from user name */
+     char                user[MAXUSERNAMELEN];   /*  Name of the POP user */
++#ifdef MYSQLAUTH
++    char                domain[MAXDOMAINNAMELEN]; /* Name of domain user logs in with */
++#endif
+     
+ #if     defined(__bsdi__) && _BSDI_VERSION >= 199608
+     char            *   style;                  /*  style of auth used */
+@@ -661,6 +700,8 @@
+     BOOL                bAuto_delete;           /* Delete msgs */
+     BOOL                bGroup_bulls;           /* Bulletins go to groups */
+     int                 hash_spool;             /* Using hashed spools? */
++    maildrop_type       MaildropType;           /* CYGNUS - What kind of maildrop? mbox/maildir */
++    BOOL                bCheck_maildir_dir;     /* CYGNUS - Check and create maildir dirs */
+     char               *pHome_dir_mail;         /* Home dir is spool loc */
+     BOOL                bOld_style_uid;         /* Generate pre-3.x UIDs */
+     BOOL                bUW_kluge;              /* Ignore UW status msgs */
+@@ -682,6 +723,7 @@
+     BOOL               bNo_atomic_open;         /* open() isn't automic. */
+     log_facility_type   log_facility;           /* Which log facility to use */
+     char               *pLog_login;             /* String to use when logging log-ins */
++    char               *spool_file;             /* The full path to the spool file, if given */
+ };
+ 
+ 
+@@ -807,6 +849,10 @@
+ void  do_log_login       (POP *p);
+ 
+ int  qpopper ( int argc, char *argv[] );
++
++#ifdef MYSQLAUTH
++int   load_popper_conf   (POP *p);
++#endif
+ 
+ extern char *pwerrmsg;
+ 
+diff -ruN qpopper4.0.4/popper/version.h qpopper4.0.4-mysql-0.6/popper/version.h
+--- qpopper4.0.4/popper/version.h	Fri Apr 12 13:11:03 2002
++++ qpopper4.0.4-mysql-0.6/popper/version.h	Tue Jan 14 12:24:54 2003
+@@ -25,7 +25,13 @@
+ #  endif /* KRB5 */
+ 
+ #else /* not KERBEROS */
+-#  define VERS_SUF1       ""
++
++#  ifdef MYSQLAUTH
++#    define VERS_SUF1       "-mysql-0.6"
++#  else
++#    define VERS_SUF1       ""
++#  endif
++
+ #endif /* KERBEROS */
+ 
+ #ifdef _DEBUG
+diff -ruN qpopper4.0.4/popper/xtnd_xlst.c qpopper4.0.4-mysql-0.6/popper/xtnd_xlst.c
+--- qpopper4.0.4/popper/xtnd_xlst.c	Tue Feb 20 17:15:22 2001
++++ qpopper4.0.4-mysql-0.6/popper/xtnd_xlst.c	Tue Jan 14 12:24:21 2003
+@@ -27,6 +27,7 @@
+ 
+ #include "config.h"
+ #include "popper.h"
++#include "snprintf.h"
+ 
+ /*
+  *  xlst:   POP XTND function to list headers from messages
+@@ -40,6 +41,8 @@
+     MsgInfoList         *   mp;         /*  Pointer to message info list */
+     int min,max;
+     int len = strlen(p->pop_parm[2]);
++    char		    filename[PATH_MAX];
++
+ 
+     /*  Convert the first parameter into an integer */
+     if (p->parm_count==3)
+@@ -80,6 +83,15 @@
+       if ( ( mp->del_flag ) || ( mp->hide_flag ) ) 
+         continue;
+ 
++                if (p->MaildropType == MAILDIR_DROP) {
++                 Qsnprintf(filename,sizeof(filename),"%s/%s",p->drop_name,mp->filename);
++                 if (!(p->drop = fopen(filename, "r"))) {
++                        DEBUG_LOG1 ( p, "Cannot open message file %s", filename);
++                        return ( pop_msg ( p, POP_FAILURE, HERE,
++                                        "Cannot open message file" ) );
++                 }
++                }
++
+       /*  
+        * Position to the start of the message 
+        */
+@@ -118,6 +130,7 @@
+   (void) fputs  ( ".\r\n", p->output );
+   (void) fflush ( p->output );
+ 
++  if (p->MaildropType == MAILDIR_DROP) fclose ( p->drop );
+   return ( POP_SUCCESS );
+ }
+ 

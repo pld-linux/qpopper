@@ -1,0 +1,8 @@
+# Customized setings for qpopper
+
+# Nice level for qpopper
+SERVICE_RUN_NICE_LEVEL="+0"
+
+# Cmdline options 
+QPOPPER_OPTS="-f /etc/qpopper/config"
+

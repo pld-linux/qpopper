@@ -1,0 +1,9 @@
+SERVICE_NAME=pop-3s
+SOCK_TYPE=stream
+PROTOCOL=tcp
+PORT=995
+FLAGS=nowait
+USER=root
+SERVER=tcpd
+DAEMON=/usr/sbin/qpopper
+DAEMONARGS="-s -l 2 -p 4 -f /etc/qpopper/config-ssl"
