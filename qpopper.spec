@@ -2,7 +2,7 @@ Summary:	POP3 daemon from Qualcomm
 Summary(pl):	Serwer POP3 tworzony przez Qualcomm
 Name:		qpopper
 Version:	4.0.4
-Release:	1.1
+Release:	1.2
 License:	BSD
 Group:		Networking/Daemons
 Source0:	ftp://ftp.qualcomm.com/eudora/servers/unix/popper/%{name}%{version}.tar.gz
@@ -152,6 +152,7 @@ rm -f configure
  	--with-openssl \
 	--with-gdbm \
 	--with-mysql \
+	--with-mysqlconfig=%{_sysconfdir}/qpopper/mysql-popper.conf \
 	--enable-ipv6
 
 %{__make}
@@ -172,6 +173,7 @@ mv -f popper/popper popper/popper.inetd
  	--with-openssl \
 	--with-gdbm \
 	--with-mysql \
+	--with-mysqlconfig=%{_sysconfdir}/qpopper/mysql-popper.conf \
 	--enable-ipv6 \
 	--enable-standalone
 
@@ -190,6 +192,7 @@ ln -sf qpopperd $RPM_BUILD_ROOT%{_sbindir}/qpoppersd
 
 install samples/qpopper.config $RPM_BUILD_ROOT%{_sysconfdir}/qpopper/config
 install samples/qpopper.config $RPM_BUILD_ROOT%{_sysconfdir}/qpopper/config-ssl
+install mysql-popper.conf $RPM_BUILD_ROOT%{_sysconfdir}/qpopper/mysql-popper.conf
 
 install man/popper.8 $RPM_BUILD_ROOT%{_mandir}/man8/qpopper.8
 echo ".so popper8" >$RPM_BUILD_ROOT%{_mandir}/man8/qpopperd.8
@@ -281,12 +284,13 @@ fi
 
 %files common
 %defattr(644,root,root,755)
-%doc doc/* GUIDE.pdf
+%doc doc/* GUIDE.pdf README*
 %dir %{_var}/mail/bulletins
 %attr(4755,root,root) %{_sbindir}/popauth
 %attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/pam.d/qpopper
 %attr(770,root,mail) %dir %{_sysconfdir}/qpopper
 %attr(660,root,mail) %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/qpopper/pop.*
+%attr(660,root,mail) %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/qpopper/mysql-popper.conf
 %attr(640,root,mail) %config(noreplace) %verify(not size mtime md5) /etc/security/blacklist.qpopper
 %{_mandir}/man8/*
 
