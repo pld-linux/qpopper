@@ -6,8 +6,7 @@ Release:     4
 Copyright:   BSD
 Group:       Networking/Daemons
 Group(pl):   Sieci/Demony
-#######      ftp://ftp.qualcomm.com/eudora/servers/unix/popper
-Source0:     %{name}%{version}.tar.Z
+Source0:     ftp://ftp.qualcomm.com/eudora/servers/unix/popper/%{name}%{version}.tar.Z
 Source1:     %{name}.pamd
 Patch0:      %{name}%{version}-linux-pam.patch
 Patch1:	     %{name}-glibc.patch
@@ -137,6 +136,7 @@ rm -rf $RPM_BUILD_ROOT
 - added patch for compiling under glibc 2.1.x
 - corrected to suit FHS 2.0 requirements
 - added BuildPrereq
+- fixed for current PAM (tnx Wiget ;))
 
 * Mon Dec 28 1998 Wojtek ¦lusarczyk <wojtek@shadow.eu.org>
   [2.53-3d]
