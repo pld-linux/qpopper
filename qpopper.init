@@ -19,35 +19,40 @@
 [ -f /etc/sysconfig/qpopper ] && . /etc/sysconfig/qpopper
 
 # Check that networking is up.
-if is_no "${NETWORKING}"; then
-        # nls "ERROR: Networking is down. %s can't be run." <service>
-        msg_network_down qpopper
-        exit 1
+if is_yes "${NETWORKING}"; then
+	if [ ! -f /var/lock/subsys/network ]; then
+		# nls "ERROR: Networking is down. %s can't be run." <service>
+		msg_network_down qpopper
+		exit 1
+	fi
+else
+	exit 0
 fi
+
 
 # See how we were called.
 case "$1" in
   start)
 	# Check if the service is already running?
-        if [ ! -f /var/lock/subsys/qpopper ]; then
+	if [ ! -f /var/lock/subsys/qpopper ]; then
 		msg_starting Qpopper
 		daemon qpopperd $QPOPPER_OPTS
-	        RETVAL=$?
+		RETVAL=$?
     		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/qpopper
 	else
-        	msg_already_running Qpopper
-	        exit 1
+		msg_already_running Qpopper
+		exit 1
 	fi
 	;;
   stop)
-        # Stop daemons.
+	# Stop daemons.
 	if [ -f /var/lock/subsys/qpopper ]; then
-                msg_stopping Qpopper
-                killproc qpopperd
-                rm -f /var/lock/subsys/qpopper > /dev/null 2>&1
-        else
+		msg_stopping Qpopper
+		killproc qpopperd
+		rm -f /var/lock/subsys/qpopper > /dev/null 2>&1
+	else
 		msg_not_running Qpopper
-	        exit 1
+		exit 1
 	fi
 	;;
   status)
@@ -59,7 +64,7 @@ case "$1" in
 	$0 start
 	;;
   *)
-	msg_usage "$0 {start|stop|restart|status}"
+	msg_usage "$0 {start|stop|restart|reload|status}"
 	exit 1
 	;;
 esac
