@@ -2,7 +2,7 @@ Summary:	POP3 daemon from Qualcomm
 Summary(pl):	Serwer POP3 tworzony przez Qualcomm
 Name:		qpopper
 Version:	4.0.4
-Release:	1
+Release:	1.1
 License:	BSD
 Group:		Networking/Daemons
 Source0:	ftp://ftp.qualcomm.com/eudora/servers/unix/popper/%{name}%{version}.tar.gz
@@ -17,6 +17,7 @@ Patch0:		%{name}4.0.4-ipv6-20020502.diff.gz
 Patch1:		%{name}-config.patch
 Patch2:		%{name}-basename.patch
 Patch3:		%{name}-man.patch
+Patch4:		http://sle.how-to.ru/articles/%{name}4.0.3-mysql-0.4.patch
 URL:		http://www.eudora.com/freeware/
 BuildRequires:	pam-devel
 BuildRequires:	gdbm-devel
@@ -58,8 +59,8 @@ tak¿e TLS/SSL.
 Summary:	inetd configs for Qpopper
 Summary(pl):	Pliki konfiguracyjne do u¿ycia Qpoppera poprzez inetd
 Group:		Networking/Daemons
-Prereq:		%{name}-common = %{version}-%{release}
-Prereq:		rc-inetd
+PreReq:		%{name}-common = %{version}-%{release}
+PreReq:		rc-inetd
 Provides:	qpopper = %{version}-%{release}
 Requires:	inetdaemon
 Obsoletes:	qpopper-standalone
@@ -77,9 +78,9 @@ Pliki konfiguracyjna Qpoppera do startowania demona poprzez inetd.
 Summary:	inetd configs for Qpopper with SSL (pop3s)
 Summary(pl):	Pliki konfiguracyjne do u¿ycia Qpoppera poprzez inetd z obslug± SSL (pop3s)
 Group:		Networking/Daemons
-Prereq:		%{name}-common = %{version}-%{release}
-Prereq:		%{name}-inetd = %{version}-%{release}
-Prereq:		rc-inetd
+PreReq:		%{name}-common = %{version}-%{release}
+PreReq:		%{name}-inetd = %{version}-%{release}
+PreReq:		rc-inetd
 Requires:	inetdaemon
 
 %description ssl-inetd
@@ -93,9 +94,9 @@ z obs³ug± SSL (pop3s).
 Summary:	standalone daemon configs for Qpopper
 Summary(pl):	Pliki konfiguracyjne do startowania Qpoppera w trybie standalone
 Group:		Networking/Daemons
-Prereq:		%{name}-common = %{version}
-Prereq:		rc-scripts
-Prereq:		/sbin/chkconfig
+PreReq:		%{name}-common = %{version}
+PreReq:		rc-scripts
+PreReq:		/sbin/chkconfig
 Provides:	qpopper = %{version}-%{release}
 Obsoletes:	qpopper-inetd
 Obsoletes:	qpopper6
@@ -113,10 +114,10 @@ standalone.
 Summary:	standalone daemon configs for Qpopper with SSL on separate port (pop3s)
 Summary(pl):	Pliki konfiguracyjne do startowania Qpoppera w trybie standalone z obs³ug± SSL na oddzielnym porcie (pop3s)
 Group:		Networking/Daemons
-Prereq:		%{name}-common = %{version}-%{release}
-Prereq:		%{name}-standalone = %{version}-%{release}
-Prereq:		rc-scripts
-Prereq:		/sbin/chkconfig
+PreReq:		%{name}-common = %{version}-%{release}
+PreReq:		%{name}-standalone = %{version}-%{release}
+PreReq:		rc-scripts
+PreReq:		/sbin/chkconfig
 
 %description ssl-standalone
 Qpopper configs for running as a standalone daemon in SSL mode on
@@ -132,6 +133,7 @@ standalone z obs³ug± SSL na oddzielnym porcie (pop3s).
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
+%patch4 -p1
 
 %build
 rm -f configure
@@ -149,6 +151,7 @@ rm -f configure
  	--enable-specialauth \
  	--with-openssl \
 	--with-gdbm \
+	--with-mysql \
 	--enable-ipv6
 
 %{__make}
@@ -168,6 +171,7 @@ mv -f popper/popper popper/popper.inetd
  	--enable-specialauth \
  	--with-openssl \
 	--with-gdbm \
+	--with-mysql \
 	--enable-ipv6 \
 	--enable-standalone
 
