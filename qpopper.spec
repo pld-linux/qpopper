@@ -12,9 +12,9 @@ Patch0:      %{name}%{version}-linux-pam.patch
 Patch1:	     %{name}-glibc.patch
 URL:         http://www.eudora.com/freeware
 Requires:    pam >= 0.66
-BuildPrereq: pam-devel
-BuildPrereq: pam-static
-BuildPrereq: gdbm-devel
+BuildRequires: pam-devel
+BuildRequires: pam-static
+BuildRequires: gdbm-devel
 Obsoletes:   qpopper6
 BuildRoot:   /tmp/%{name}-%{version}--root
 
