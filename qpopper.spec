@@ -96,7 +96,7 @@ Summary(pl):	Pliki konfiguracyjne do startowania Qpoppera w trybie standalone
 Group:		Networking/Daemons
 PreReq:		%{name}-common = %{version}
 PreReq:		rc-scripts
-PreReq:		/sbin/chkconfig
+Requires(post,preun):	/sbin/chkconfig
 Provides:	qpopper = %{version}-%{release}
 Obsoletes:	qpopper-inetd
 Obsoletes:	qpopper6
@@ -117,7 +117,7 @@ Group:		Networking/Daemons
 PreReq:		%{name}-common = %{version}-%{release}
 PreReq:		%{name}-standalone = %{version}-%{release}
 PreReq:		rc-scripts
-PreReq:		/sbin/chkconfig
+Requires(post,preun):	/sbin/chkconfig
 
 %description ssl-standalone
 Qpopper configs for running as a standalone daemon in SSL mode on
@@ -212,13 +212,15 @@ touch $RPM_BUILD_ROOT/etc/security/blacklist.qpopper
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%post
+%post common
+umask 007
 echo -e `	ls -lFd /usr/sbin/popauth `
 if [ ! -f /etc/qpopper/pop.auth ]; then
         popauth -init
 fi
 if [ ! -f /etc/qpopper/pop.deny ]; then
-        echo -e "root \n" > /etc/qpopper/pop.deny
+	echo -e "root \n" > /etc/qpopper/pop.deny
+	chown root.mail /etc/qpopper/pop.deny
 fi
 
 %post inetd
