@@ -117,7 +117,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(4711,root,root) %{_sbindir}/popauth
 
 %attr(644,root, man) %{_mandir}/man8/*
-%attr(640,root,root) %config /etc/pam.d/qpopper
+%attr(640,root,root) %config %verify(not size mtime md5) /etc/pam.d/qpopper
 %attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/sysconfig/rc-inetd/qpopper
 %attr(700,mail,mail) %dir /etc/qpopper
 %attr(600,mail,mail) %config(noreplace) %verify(not size mtime md5) /etc/qpopper/pop.*
