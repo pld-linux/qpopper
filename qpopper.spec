@@ -5,7 +5,7 @@ Version:	3.0
 Release:	1
 Copyright:	BSD
 Group:		Networking/Daemons
-Group(pl):	Sieciowe/Demony
+Group(pl):	Sieciowe/Serwery
 Source0:	ftp://ftp.qualcomm.com/eudora/servers/unix/popper/%{name}%{version}.tar.Z
 Source1:	%{name}.pamd
 Source2:	%{name}.inetd
