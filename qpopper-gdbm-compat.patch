@@ -1,0 +1,14 @@
+diff -Nur qpopper4.0.5.orig/configure.in qpopper4.0.5.chng/configure.in
+--- qpopper4.0.5.orig/configure.in	Tue Jun 10 16:26:35 2003
++++ qpopper4.0.5.chng/configure.in	Tue Jun 10 16:37:09 2003
+@@ -1355,6 +1355,10 @@
+         else
+             AC_MSG_RESULT( didn't find gdbm )
+         fi
++	TMPLIBS="$LIBS"
++	LIBS="$LIBS $DBM_LIBS"
++	AC_CHECK_LIB( gdbm_compat, dbm_dirfno, DBM_LIBS="$DBM_LIBS -lgdbm_compat", )
++	LIBS="$TMPLIBS"
+     fi
+ 
+     if test -z "$DBM_LIBS"; then
