@@ -12,6 +12,7 @@ Source3:	%{name}.init
 Source4:	%{name}.sysconfig
 Patch0:		%{name}4.0.4-ipv6-20020502.diff.gz
 Patch1:		%{name}-config.patch
+Patch2:		%{name}-basename.patch
 URL:		http://www.eudora.com/freeware/
 BuildRequires:	pam-devel
 BuildRequires:	gdbm-devel
@@ -91,6 +92,8 @@ standalone.
 %prep
 %setup -q -n %{name}%{version}
 %patch0 -p1
+%patch1 -p1
+%patch2 -p1
 
 %build
 rm -f configure
