@@ -212,7 +212,7 @@ fi
 
 %files inetd
 %defattr(644,root,root,755)
-%attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/sysconfig/rc-inetd/qpopper
+%attr(640,root,root) %config %verify(not size mtime md5) /etc/sysconfig/rc-inetd/qpopper
 %attr(0755,root,root) %{_sbindir}/qpopper
 
 %files standalone
