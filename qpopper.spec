@@ -129,28 +129,3 @@ rm -rf $RPM_BUILD_ROOT
 %attr(640,root,root) %config /etc/pam.d/qpopper
 %attr(700,mail,mail) %dir /etc/qpopper
 %attr(600,mail,mail) %config(noreplace) %verify(not size mtime md5) /etc/qpopper/pop.*
-
-%changelog
-* Thu Jun 24 1999 Michal Margula <alchemyx@pld.org.pl>
-  [2.53-4]
-- added patch for compiling under glibc 2.1.x
-- corrected to suit FHS 2.0 requirements
-- added BuildPrereq
-- fixed for current PAM (tnx Wiget ;))
-
-* Mon Dec 28 1998 Wojtek ¦lusarczyk <wojtek@shadow.eu.org>
-  [2.53-3d]
-- added missing files in /etc/qpopper -- a bug in qpopper ? 
-
-* Tue Sep 8 1998 Ziemek Borowski <ziembor@faq-bot.ziembor.waw.pl>
-  [2.53-1d]
-- Polish .spec translation
-- more detailed %attr for binaries (mail SUID for /usr/sbin/popauth) 
-- %post & %postud added (from  Ximenes Zalteca <ximenes@mythic.net> spec:
-  http://www.kiva.net/~cdent/pam/)
-- %ghost for /etc/pop.auth & /etc/pop.deny 
-- todo: qmail subpackage 
-
-* Tue Sep 8 1998 Marek Habersack <grendel@vip.maestro.com.pl>
-   [2.53-1PAM]
- - first .spec release of this version 
