@@ -2,7 +2,7 @@ Summary:	POP3 daemon from Qualcomm
 Summary(pl):	Serwer POP3 tworzony przez Qualcomm
 Name:		qpopper
 Version:	3.0.2
-Release:	2
+Release:	3
 License:	BSD
 Group:		Networking/Daemons
 Group(pl):	Sieciowe/Serwery
@@ -16,8 +16,10 @@ Requires:	inetdaemon
 Prereq:		rc-inetd
 BuildRequires:	pam-devel
 BuildRequires:	gdbm-devel
-Obsoletes:	qpopper6
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
+Obsoletes:	qpopper6
+Obsoletes:	solid-pop3d
+Obsoletes:	imap-pop
 
 %description
 POP3 server from QUALCOMM, with the following features: lower memory
