@@ -108,7 +108,7 @@ diff -ur qpopper2.53.orig/popper.h qpopper2.53/popper.h
  #endif
  
  extern int		pop_timeout;
-+extern int		pop_homedirmail;
++extern char		*pop_homedirmail;
  
  extern int		hangup;
  
