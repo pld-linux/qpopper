@@ -8,6 +8,7 @@ Group:		Networking/Daemons
 Group(pl):	Sieciowe/Demony
 Source0:	ftp://ftp.qualcomm.com/eudora/servers/unix/popper/%{name}%{version}.tar.Z
 Source1:	%{name}.pamd
+Source2:	%{name}.rc-inetd
 Patch0:		%{name}%{version}-linux-pam.patch
 Patch1:		%{name}-glibc.patch
 Patch2:		%{name}-massive-kpld.patch
@@ -63,7 +64,7 @@ rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT%{_sbindir}
 install -d $RPM_BUILD_ROOT%{_mandir}/man8
 install -d $RPM_BUILD_ROOT%{_var}/mail/bulletins
-install -d $RPM_BUILD_ROOT/etc/{pam.d/,qpopper,security}
+install -d $RPM_BUILD_ROOT/etc/{pam.d/,qpopper,security,sysconfig/rc-inetd}
 install -s popper $RPM_BUILD_ROOT%{_sbindir}/qpopper
 
 sed -e 's#/usr/etc/popper#/usr/sbin/qpopper#g' < popper.8 \
@@ -73,6 +74,7 @@ install -s popauth $RPM_BUILD_ROOT%{_sbindir}/popauth
 
 install popauth.8 $RPM_BUILD_ROOT%{_mandir}/man8/popauth.8
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/pam.d/qpopper
+install %{SOURCE2} $RPM_BUILD_ROOT/etc/sysconfig/rc-inetd/qpopper
 
 touch $RPM_BUILD_ROOT/etc/qpopper/pop.auth
 touch $RPM_BUILD_ROOT/etc/qpopper/pop.deny
@@ -91,32 +93,7 @@ if [ ! -f /etc/qpopper/pop.deny ]; then
         echo -e "root \n" > /etc/qpopper/pop.deny
 fi
 
-if [ -f /etc/inetd.conf ]; then
-	echo -e "Add Qpopper entries to /etc/inetd.conf \n"        
-        cat /etc/inetd.conf | grep -v "^pop-3" | grep -v "End of inetd.conf" \
-                > /tmp/inetd.conf
-        echo "# Qualcomm popper" >> /tmp/inetd.conf
-        echo "pop-3  stream  tcp     nowait  root  /usr/sbin/tcpd qpopper" >> /tmp/inetd.conf
-        echo "# End of inetd.conf" >> /tmp/inetd.conf
-
-        mv /tmp/inetd.conf /etc/inetd.conf
-fi
-
-if [ -e /var/run/inetd.pid ]; then
-    kill -HUP `cat /var/run/inetd.pid` ;
-fi
-
 %preun
-if [ -f /etc/inetd.conf ]; then
-	echo -e "Removing Qpopper entries from /etc/inetd.conf \n"
-        cat /etc/inetd.conf | grep -v "qpopper" | grep -v "Qualcomm popper" \
-	> /tmp/inetd.conf
-        mv /tmp/inetd.conf /etc/inetd.conf
-fi
-
-if [ -e /var/run/inetd.pid ]; then
-        kill -HUP `cat /var/run/inetd.pid` ;
-fi
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -131,6 +108,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %attr(644,root, man) %{_mandir}/man8/*
 %attr(640,root,root) %config /etc/pam.d/qpopper
+%attr(640,root,root) %config /etc/sysconfig/rc-inetd/qpopper
 %attr(700,mail,mail) %dir /etc/qpopper
 %attr(600,mail,mail) %config(noreplace) %verify(not size mtime md5) /etc/qpopper/pop.*
 %attr(640,root,mail) %config(noreplace) %verify(not size mtime md5) /etc/security/blacklist.qpopper
