@@ -52,9 +52,9 @@ tak¿e TLS/SSL.
 Summary:	inetd configs for Qpopper
 Summary(pl):	Pliki konfiguracyjne do u¿ycia Qpoppera poprzez inetd
 Group:		Networking/Daemons
-Prereq:		%{name}-common = %{epoch}:%{version}
+Prereq:		%{name}-common = %{version}
 Prereq:		rc-inetd
-Provides:	qpopper = %{epoch}:%{version}-%{release}
+Provides:	qpopper = %{version}-%{release}
 Requires:	inetdaemon
 Obsoletes:	qpopper-standalone
 Obsoletes:	qpopper6
@@ -74,7 +74,7 @@ Group:		Networking/Daemons
 Prereq:		%{name}-common = %{version}
 Prereq:		rc-scripts
 Prereq:		/sbin/chkconfig
-Provides:	qpopper = %{epoch}:%{version}-%{release}
+Provides:	qpopper = %{version}-%{release}
 Obsoletes:	qpopper-inetd
 Obsoletes:	qpopper6
 Obsoletes:	solid-pop3d
