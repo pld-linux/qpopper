@@ -2,7 +2,7 @@ Summary:	POP3 daemon from Qualcomm
 Summary(pl):	Serwer POP3 tworzony przez Qualcomm
 Name:		qpopper
 Version:	3.0.2
-Release:	1
+Release:	2
 License:	BSD
 Group:		Networking/Daemons
 Group(pl):	Sieciowe/Serwery
@@ -103,14 +103,12 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(644,root,root,755)
 %doc doc/*
-
 %dir %{_var}/mail/bulletins
 %attr(0755,root,root) %{_sbindir}/qpopper
-%attr(4711,root,root) %{_sbindir}/popauth
-
-%attr(644,root, man) %{_mandir}/man8/*
+%attr(4755,root,root) %{_sbindir}/popauth
 %attr(640,root,root) %config %verify(not size mtime md5) /etc/pam.d/qpopper
 %attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/sysconfig/rc-inetd/qpopper
 %attr(700,mail,mail) %dir %{_sysconfdir}/qpopper
 %attr(600,mail,mail) %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/qpopper/pop.*
 %attr(640,root,mail) %config(noreplace) %verify(not size mtime md5) /etc/security/blacklist.qpopper
+%{_mandir}/man8/*
