@@ -5,7 +5,7 @@ Version:     2.53
 Release:     4 
 Copyright:   BSD
 Group:       Networking/Daemons
-Group(pl):   Sieci/Demony
+Group(pl):   Sieciowe/Demony
 Source0:     ftp://ftp.qualcomm.com/eudora/servers/unix/popper/%{name}%{version}.tar.Z
 Source1:     %{name}.pamd
 Patch0:      %{name}%{version}-linux-pam.patch
