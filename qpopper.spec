@@ -2,16 +2,20 @@ Summary:     POP3 daemon from Qualcomm
 Summary(pl): serwer POP3 tworzony przez Qualcomm
 Name:        qpopper
 Version:     2.53
-Release:     3d 
+Release:     4 
 Copyright:   BSD
 Group:       Networking/Daemons
 Group(pl):   Sieci/Demony
 #######      ftp://ftp.qualcomm.com/eudora/servers/unix/popper
 Source0:     %{name}%{version}.tar.Z
 Source1:     %{name}.pamd
-Patch:       %{name}%{version}-linux-pam.patch
+Patch0:      %{name}%{version}-linux-pam.patch
+Patch1:	     %{name}-glibc.patch
 URL:         http://www.eudora.com/freeware
 Requires:    pam >= 0.66
+BuildPrereq: pam-devel
+BuildPrereq: pam-static
+BuildPrereq: gdbm-devel
 Obsoletes:   qpopper6
 BuildRoot:   /tmp/%{name}-%{version}--root
 
@@ -40,12 +44,12 @@ Marka Habersacka <grendel@vip.maestro.com.pl>).
  
 %prep
 %setup -q -n %{name}%{version}
-%patch -p1
-
+%patch0 -p1
+%patch1 -p1
 %build
 CFLAGS=$RPM_OPT_FLAGS ./configure \
  --prefix=/usr \
- --enable-bulletins=/var/spool/mail/bulletins \
+ --enable-bulletins=/var/mail/bulletins \
  --enable-apop=/etc/qpopper/pop.auth \
  --with-apopuid=mail \
  --with-pam
@@ -54,18 +58,19 @@ make
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT/usr/{sbin,man/man8}
-install -d $RPM_BUILD_ROOT/var/spool/mail/bulletins
+install -d $RPM_BUILD_ROOT/usr/sbin
+install -d $RPM_BUILD_ROOT%{_mandir}/man8
+install -d $RPM_BUILD_ROOT/var/mail/bulletins
 install -d $RPM_BUILD_ROOT/etc/pam.d/
 install -d $RPM_BUILD_ROOT/etc/qpopper
 install -s popper $RPM_BUILD_ROOT/usr/sbin/qpopper
 
 sed -e 's#/usr/etc/popper#/usr/sbin/qpopper#g' < popper.8 \
-> $RPM_BUILD_ROOT/usr/man/man8/qpopper.8
+> $RPM_BUILD_ROOT/%{_mandir}/man8/qpopper.8
 
 install -s popauth $RPM_BUILD_ROOT/usr/sbin/popauth
 
-install popauth.8 $RPM_BUILD_ROOT/usr/man/man8/popauth.8
+install popauth.8 $RPM_BUILD_ROOT%{_mandir}/man8/popauth.8
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/pam.d/qpopper
 
 touch $RPM_BUILD_ROOT/etc/qpopper/pop.auth
@@ -73,7 +78,7 @@ touch $RPM_BUILD_ROOT/etc/qpopper/pop.deny
 touch $RPM_BUILD_ROOT/etc/qpopper/pop.auth.db
 touch $RPM_BUILD_ROOT/etc/qpopper/pop.auth.dir
 
-bzip2 -9 $RPM_BUILD_ROOT/usr/man/man8/* doc/*
+gzip -9fn $RPM_BUILD_ROOT%{_mandir}/man8/* doc/*
 
 %post
  	echo -e `	ls -lFd /usr/sbin/popauth `
@@ -117,16 +122,22 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %doc doc/*
 
-%dir /var/spool/mail/bulletins
+%dir /var/mail/bulletins
 %attr(0755,root,root) /usr/sbin/qpopper
 %attr(4711,root,root) /usr/sbin/popauth
 
-%attr(644,root, man) /usr/man/man8/*
+%attr(644,root, man) %{_mandir}/man8/*
 %attr(640,root,root) %config /etc/pam.d/qpopper
 %attr(700,mail,mail) %dir /etc/qpopper
 %attr(600,mail,mail) %config(noreplace) %verify(not size mtime md5) /etc/qpopper/pop.*
 
 %changelog
+* Thu Jun 24 1999 Michal Margula <alchemyx@pld.org.pl>
+  [2.53-4]
+- added patch for compiling under glibc 2.1.x
+- corrected to suit FHS 2.0 requirements
+- added BuildPrereq
+
 * Mon Dec 28 1998 Wojtek ¦lusarczyk <wojtek@shadow.eu.org>
   [2.53-3d]
 - added missing files in /etc/qpopper -- a bug in qpopper ? 
