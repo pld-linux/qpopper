@@ -5,8 +5,8 @@ Version:	3.0.2
 Release:	5
 License:	BSD
 Group:		Networking/Daemons
-Group(pl):	Sieciowe/Serwery
 Group(de):	Netzwerkwesen/Server
+Group(pl):	Sieciowe/Serwery
 Source0:	ftp://ftp.qualcomm.com/eudora/servers/unix/popper/%{name}%{version}.tar.Z
 Source1:	%{name}.pamd
 Source2:	%{name}.inetd
