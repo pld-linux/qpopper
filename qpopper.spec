@@ -52,7 +52,7 @@ Marka Habersacka <grendel@vip.maestro.com.pl>).
 
 %build
 rm -f configure
-autoconf
+%{__autoconf}
 %configure \
 	--enable-bulletins=%{_var}/mail/bulletins \
 	--enable-apop=%{_sysconfdir}/qpopper/pop.auth \
