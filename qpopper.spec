@@ -2,7 +2,7 @@ Summary:	POP3 daemon from Qualcomm
 Summary(pl):	Serwer POP3 tworzony przez Qualcomm
 Name:		qpopper
 Version:	4.0.4
-Release:	0.3
+Release:	0.9
 License:	BSD
 Group:		Networking/Daemons
 Source0:	ftp://ftp.qualcomm.com/eudora/servers/unix/popper/%{name}%{version}.tar.gz
@@ -10,9 +10,9 @@ Source1:	%{name}.pamd
 Source2:	%{name}.inetd
 Source3:	%{name}.init
 Source4:	%{name}.sysconfig
-Source5:	%{name}s.inetd
-Source6:	%{name}s.init
-Source7:	%{name}s.sysconfig
+Source5:	%{name}-ssl.inetd
+Source6:	%{name}-ssl.init
+Source7:	%{name}-ssl.sysconfig
 Patch0:		%{name}4.0.4-ipv6-20020502.diff.gz
 Patch1:		%{name}-config.patch
 Patch2:		%{name}-basename.patch
@@ -179,11 +179,13 @@ install -d $RPM_BUILD_ROOT{%{_sbindir},%{_mandir}/man8} \
 	$RPM_BUILD_ROOT%{_var}/mail/bulletins \
 	$RPM_BUILD_ROOT%{_sysconfdir}/{pam.d/,qpopper,security,sysconfig/rc-inetd,rc.d/init.d}
 
+install popper/popauth $RPM_BUILD_ROOT%{_sbindir}/popauth
 install popper/popper.inetd $RPM_BUILD_ROOT%{_sbindir}/qpopper
 install popper/popper $RPM_BUILD_ROOT%{_sbindir}/qpopperd
-install popper/popauth $RPM_BUILD_ROOT%{_sbindir}/popauth
+ln -sf qpopperd $RPM_BUILD_ROOT%{_sbindir}/qpoppersd
 
 install samples/qpopper.config $RPM_BUILD_ROOT%{_sysconfdir}/qpopper/config
+install samples/qpopper.config $RPM_BUILD_ROOT%{_sysconfdir}/qpopper/config-ssl
 
 install man/popper.8 $RPM_BUILD_ROOT%{_mandir}/man8/qpopper.8
 echo ".so popper8" >$RPM_BUILD_ROOT%{_mandir}/man8/qpopperd.8
@@ -193,6 +195,9 @@ install %{SOURCE1} $RPM_BUILD_ROOT/etc/pam.d/qpopper
 install %{SOURCE2} $RPM_BUILD_ROOT/etc/sysconfig/rc-inetd/qpopper
 install %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/qpopper
 install %{SOURCE4} $RPM_BUILD_ROOT/etc/sysconfig/qpopper
+install %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig/rc-inetd/qpoppers
+install %{SOURCE6} $RPM_BUILD_ROOT/etc/rc.d/init.d/qpoppers
+install %{SOURCE7} $RPM_BUILD_ROOT/etc/sysconfig/qpoppers
 
 touch $RPM_BUILD_ROOT%{_sysconfdir}/qpopper/pop.auth
 touch $RPM_BUILD_ROOT%{_sysconfdir}/qpopper/pop.deny
@@ -276,26 +281,30 @@ fi
 %attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/pam.d/qpopper
 %attr(770,root,mail) %dir %{_sysconfdir}/qpopper
 %attr(660,root,mail) %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/qpopper/pop.*
-%attr(660,root,mail) %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/qpopper/config
 %attr(640,root,mail) %config(noreplace) %verify(not size mtime md5) /etc/security/blacklist.qpopper
 %{_mandir}/man8/*
 
 %files inetd
 %defattr(644,root,root,755)
+%attr(660,root,mail) %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/qpopper/config
 %attr(640,root,root) %config %verify(not size mtime md5) /etc/sysconfig/rc-inetd/qpopper
 %attr(0755,root,root) %{_sbindir}/qpopper
 
 %files ssl-inetd
 %defattr(644,root,root,755)
+%attr(660,root,mail) %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/qpopper/config-ssl
 %attr(640,root,root) %config %verify(not size mtime md5) /etc/sysconfig/rc-inetd/qpoppers
 
 %files standalone
 %defattr(644,root,root,755)
+%attr(660,root,mail) %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/qpopper/config
 %attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/sysconfig/qpopper
 %attr(754,root,root) /etc/rc.d/init.d/qpopper
 %attr(0755,root,root) %{_sbindir}/qpopperd
 
 %files ssl-standalone
 %defattr(644,root,root,755)
+%attr(660,root,mail) %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/qpopper/config-ssl
 %attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/sysconfig/qpoppers
 %attr(754,root,root) /etc/rc.d/init.d/qpoppers
+%attr(0755,root,root) %{_sbindir}/qpoppersd
