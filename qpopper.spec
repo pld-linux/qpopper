@@ -1,22 +1,23 @@
-Summary:     POP3 daemon from Qualcomm
-Summary(pl): serwer POP3 tworzony przez Qualcomm
-Name:        qpopper
-Version:     2.53
-Release:     4 
-Copyright:   BSD
-Group:       Networking/Daemons
-Group(pl):   Sieciowe/Demony
-Source0:     ftp://ftp.qualcomm.com/eudora/servers/unix/popper/%{name}%{version}.tar.Z
-Source1:     %{name}.pamd
-Patch0:      %{name}%{version}-linux-pam.patch
-Patch1:	     %{name}-glibc.patch
-Patch2:	     %{name}-massive-kpld.patch
-URL:         http://www.eudora.com/freeware/
-Requires:    pam >= 0.66
-BuildRequires: pam-devel
-BuildRequires: gdbm-devel
-Obsoletes:   qpopper6
-BuildRoot:   /tmp/%{name}-%{version}--root
+Summary:	POP3 daemon from Qualcomm
+Summary(pl):	Serwer POP3 tworzony przez Qualcomm
+Name:		qpopper
+Version:	2.53
+Release:	5 
+Copyright:	BSD
+Group:		Networking/Daemons
+Group(pl):	Sieciowe/Demony
+Source0:	ftp://ftp.qualcomm.com/eudora/servers/unix/popper/%{name}%{version}.tar.Z
+Source1:	%{name}.pamd
+Patch0:		%{name}%{version}-linux-pam.patch
+Patch1:		%{name}-glibc.patch
+Patch2:		%{name}-massive-kpld.patch
+Patch3:		qpopper-homemaildir.patch
+URL:		http://www.eudora.com/freeware/
+Requires:	pam >= 0.66
+BuildRequires:	pam-devel
+BuildRequires:	gdbm-devel
+Obsoletes:	qpopper6
+BuildRoot:	/tmp/%{name}-%{version}-root
 
 %description
 POP3 server from QUALCOMM, with the following features: lower memory
@@ -45,14 +46,16 @@ zosta³o dodane przez: Marka Habersacka <grendel@vip.maestro.com.pl>).
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
+%patch3 -p1
+
 %build
 CFLAGS=$RPM_OPT_FLAGS ./configure \
- --prefix=%{_prefix} \
- --enable-bulletins=%{_var}/mail/bulletins \
- --enable-apop=/etc/qpopper/pop.auth \
- --with-apopuid=mail \
- --with-pam
- 
+	--prefix=%{_prefix} \
+	--enable-bulletins=%{_var}/mail/bulletins \
+	--enable-apop=/etc/qpopper/pop.auth \
+	--with-apopuid=mail \
+	--with-pam
+
 make 
 
 %install
@@ -114,6 +117,7 @@ fi
 if [ -e /var/run/inetd.pid ]; then
         kill -HUP `cat /var/run/inetd.pid` ;
 fi
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
