@@ -8,7 +8,7 @@ Group:		Networking/Daemons
 Group(pl):	Sieciowe/Demony
 Source0:	ftp://ftp.qualcomm.com/eudora/servers/unix/popper/%{name}%{version}.tar.Z
 Source1:	%{name}.pamd
-Source2:	%{name}.rc-inetd
+Source2:	%{name}.inetd
 Patch0:		%{name}%{version}-linux-pam.patch
 Patch1:		%{name}-glibc.patch
 Patch2:		%{name}-massive-kpld.patch
