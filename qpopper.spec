@@ -2,7 +2,7 @@ Summary:	POP3 daemon from Qualcomm
 Summary(pl):	Serwer POP3 tworzony przez Qualcomm
 Name:		qpopper
 Version:	4.0.4
-Release:	0.1
+Release:	0.2
 License:	BSD
 Group:		Networking/Daemons
 Source0:	ftp://ftp.qualcomm.com/eudora/servers/unix/popper/%{name}%{version}.tar.gz
@@ -11,6 +11,7 @@ Source2:	%{name}.inetd
 Source3:	%{name}.init
 Source4:	%{name}.sysconfig
 Patch0:		%{name}4.0.4-ipv6-20020502.diff.gz
+Patch1:		%{name}-config.patch
 URL:		http://www.eudora.com/freeware/
 BuildRequires:	pam-devel
 BuildRequires:	gdbm-devel
