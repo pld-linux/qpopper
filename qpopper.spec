@@ -15,6 +15,8 @@ Patch2:		%{name}-massive-kpld.patch
 Patch3:		qpopper-homemaildir.patch
 URL:		http://www.eudora.com/freeware/
 Requires:	pam >= 0.66
+Requires:	inetdaemon
+Requires:	rc-inetd
 BuildRequires:	pam-devel
 BuildRequires:	gdbm-devel
 Obsoletes:	qpopper6
