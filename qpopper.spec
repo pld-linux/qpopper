@@ -68,7 +68,7 @@ autoconf
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT{%{_sbindir},%{_mandir}/man8} \
 	$RPM_BUILD_ROOT%{_var}/mail/bulletins \
-$RPM_BUILD_ROOT%{_sysconfdir}/{pam.d/,qpopper,security,sysconfig/rc-inetd}
+	$RPM_BUILD_ROOT%{_sysconfdir}/{pam.d/,qpopper,security,sysconfig/rc-inetd}
 
 install popper/popper $RPM_BUILD_ROOT%{_sbindir}/qpopper
 install popper/popauth $RPM_BUILD_ROOT%{_sbindir}/popauth
@@ -84,7 +84,10 @@ touch $RPM_BUILD_ROOT%{_sysconfdir}/qpopper/pop.auth.db
 touch $RPM_BUILD_ROOT%{_sysconfdir}/qpopper/pop.auth.dir
 touch $RPM_BUILD_ROOT/etc/security/blacklist.qpopper
 
-gzip -9nf $RPM_BUILD_ROOT%{_mandir}/man8/* doc/*
+gzip -9nf doc/*
+
+%clean
+rm -rf $RPM_BUILD_ROOT
 
 %post
 echo -e `	ls -lFd /usr/sbin/popauth `
@@ -104,9 +107,6 @@ fi
 if [ -f /var/lock/subsys/rc-inetd ]; then
 	/etc/rc.d/init.d/rc-inetd restart 1>&2
 fi
-
-%clean
-rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(644,root,root,755)
