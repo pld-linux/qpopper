@@ -1,6 +1,5 @@
-diff -ur qpopper4.0.4.orig/samples/qpopper.config qpopper4.0.4/samples/qpopper.config
---- qpopper4.0.4.orig/samples/qpopper.config	Tue Mar 20 01:47:18 2001
-+++ qpopper4.0.4/samples/qpopper.config	Tue Dec  3 19:01:25 2002
+--- qpopper4.0.5/samples/qpopper.config.orig	Thu Mar 13 09:13:18 2003
++++ qpopper4.0.5/samples/qpopper.config	Thu Mar 13 09:16:02 2003
 @@ -30,7 +30,7 @@
  #
  # Default: /var/spool/bulls
@@ -28,16 +27,7 @@ diff -ur qpopper4.0.4.orig/samples/qpopper.config qpopper4.0.4/samples/qpopper.c
  
  
  # Sets the timeout for network reads.  Qpopper terminates the
-@@ -338,7 +338,7 @@
- # Default: none
- #
- #
--# set tls-server-cert-file     = /etc/mail/certs/hostname.cert
-+# set tls-server-cert-file     = /etc/qpopper/server.crt
- 
- 
- # Specifies a file which contains the server's TLS/SSL private key.
-@@ -352,7 +352,7 @@
+@@ -364,7 +364,7 @@
  #
  # Default: none
  #
@@ -45,8 +35,17 @@ diff -ur qpopper4.0.4.orig/samples/qpopper.config qpopper4.0.4/samples/qpopper.c
 +# set tls-private-key-file     = /etc/qpopper/server.key
  
  
- # When set, Qpopper writes a log record at the end of a session
-@@ -466,7 +466,7 @@
+ # Specifies the file which contains the server's TLS/SSL certificate.
+@@ -375,7 +375,7 @@
+ # Default: none
+ #
+ #
+-# set tls-server-cert-file     = /etc/mail/certs/hostname.cert
++# set tls-server-cert-file     = /etc/qpopper/server.crt
+ 
+ 
+ # When set, and Qpopper is being used with OpenSSL, Qpopper enables
+@@ -499,7 +499,7 @@
  #
  # Default: none
  #
@@ -55,7 +54,7 @@ diff -ur qpopper4.0.4.orig/samples/qpopper.config qpopper4.0.4/samples/qpopper.c
  
  
  # When set, instructs Qpopper to generate message unique identifiers
-@@ -485,7 +485,7 @@
+@@ -518,7 +518,7 @@
  #
  # Default: false
  #
@@ -64,7 +63,7 @@ diff -ur qpopper4.0.4.orig/samples/qpopper.config qpopper4.0.4/samples/qpopper.c
  
  
  # When set, Qpopper keeps (does not delete) the '.user.pop' file (the
-@@ -560,7 +560,7 @@
+@@ -593,7 +593,7 @@
  #
  # The default is determined at compile time.  
  #
@@ -73,7 +72,7 @@ diff -ur qpopper4.0.4.orig/samples/qpopper.config qpopper4.0.4/samples/qpopper.c
  
  
  # If you do not want '.user.pop' (temporary drop files) to be in the
-@@ -663,7 +663,7 @@
+@@ -696,7 +696,7 @@
  # Default: determined at compile time, usually LOG_LOCAL0 or
  # LOG_MAIL, depending on the operating system.
  #
@@ -82,9 +81,3 @@ diff -ur qpopper4.0.4.orig/samples/qpopper.config qpopper4.0.4/samples/qpopper.c
  
  
  # When set, Qpopper logs successful authentications using the
-@@ -675,5 +675,3 @@
- # in which case "(v%0) POP login by user /"%1/" at (%2) %3" is used.
- #
- # set log-login                = "(v%0) POP login by user /"%1/" at (%2) %3"
--
--
