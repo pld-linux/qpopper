@@ -54,7 +54,7 @@ Marka Habersacka <grendel@vip.maestro.com.pl>).
 	--with-pam=qpopper \
 	--enable-log-login
 
-make 
+%{__make} 
 
 %install
 rm -rf $RPM_BUILD_ROOT
