@@ -1,0 +1,8 @@
+SERVICE_NAME=pop-3
+SOCK_TYPE=stream
+PROTOCOL=tcp
+FLAGS=nowait
+USER=root
+SERVER=tcpd
+DAEMON=/usr/sbin/qpopper
+DAEMONARGS="-s"
