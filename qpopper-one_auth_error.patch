@@ -1,0 +1,47 @@
+--- qpopper4.0.5/popper/pop_pass.c.orig	Fri Jun 27 00:42:21 2003
++++ qpopper4.0.5/popper/pop_pass.c	Fri Jun 27 00:49:07 2003
+@@ -371,8 +371,6 @@
+  * Some globals to make it easier to communicate between functions 
+  */
+ static int   gp_errcode   = 0;
+-static char *GP_ERRSTRING =
+-            "[AUTH] PAM authentication failed for user \"%.100s\": %.128s (%d)";
+ 
+ static int 
+ PAM_qpopper_conv ( int                        num_msg, 
+@@ -457,7 +455,7 @@
+         pam_end ( pamh, 0 );
+         sleep   ( SLEEP_SECONDS );
+         erc = pamerror ? pamerror : gp_errcode;
+-        return  ( pop_msg ( p, POP_FAILURE, HERE, GP_ERRSTRING, p->user,
++        return  ( pop_msg ( p, POP_FAILURE, HERE, ERRMSG_PW, p->user,
+                             pam_strerror(NULL, erc), erc ) );
+     }
+     pamerror = pam_authenticate ( pamh, 0 );
+@@ -480,7 +478,7 @@
+         errmsg = pam_strerror ( pamh, erc );
+         pam_end ( pamh, 0 );
+         sleep   ( SLEEP_SECONDS );
+-        return  ( pop_msg ( p, POP_FAILURE, HERE, GP_ERRSTRING, 
++        return  ( pop_msg ( p, POP_FAILURE, HERE, ERRMSG_PW, 
+                             p->user, errmsg, erc ) );
+     }
+     pamerror = pam_acct_mgmt ( pamh, 0 );
+@@ -489,7 +487,7 @@
+         errmsg = pam_strerror ( pamh, pamerror );
+         pam_end ( pamh, 0 );
+         sleep   ( SLEEP_SECONDS );
+-        return  ( pop_msg ( p, POP_FAILURE, HERE, GP_ERRSTRING, 
++        return  ( pop_msg ( p, POP_FAILURE, HERE, ERRMSG_PW, 
+                             p->user, errmsg, pamerror ) );
+     }
+     pamerror = pam_setcred ( pamh, PAM_ESTABLISH_CRED );
+@@ -498,7 +496,7 @@
+         errmsg = pam_strerror ( pamh, pamerror );
+         pam_end ( pamh, 0 );
+         sleep   ( SLEEP_SECONDS );
+-        return  ( pop_msg ( p, POP_FAILURE, HERE, GP_ERRSTRING, 
++        return  ( pop_msg ( p, POP_FAILURE, HERE, ERRMSG_PW, 
+                             p->user, errmsg, pamerror ) );
+     }
+ 
