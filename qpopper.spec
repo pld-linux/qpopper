@@ -261,7 +261,7 @@ if [ ! -f /etc/qpopper/pop.auth ]; then
 fi
 if [ ! -f /etc/qpopper/pop.deny ]; then
 	echo -e "root \n" > /etc/qpopper/pop.deny
-	chown root.mail /etc/qpopper/pop.deny
+	chown root:mail /etc/qpopper/pop.deny
 fi
 
 %post inetd
