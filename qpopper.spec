@@ -258,7 +258,7 @@ rm -rf $RPM_BUILD_ROOT
 umask 007
 echo -e `	ls -lFd /usr/sbin/popauth `
 if [ ! -f /etc/qpopper/pop.auth ]; then
-        popauth -init
+	popauth -init
 fi
 if [ ! -f /etc/qpopper/pop.deny ]; then
 	echo -e "root \n" > /etc/qpopper/pop.deny
