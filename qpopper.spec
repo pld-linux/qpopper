@@ -70,8 +70,8 @@ install -d $RPM_BUILD_ROOT{%{_sbindir},%{_mandir}/man8} \
 	$RPM_BUILD_ROOT%{_var}/mail/bulletins \
 $RPM_BUILD_ROOT%{_sysconfdir}/{pam.d/,qpopper,security,sysconfig/rc-inetd}
 
-install -s popper/popper $RPM_BUILD_ROOT%{_sbindir}/qpopper
-install -s popper/popauth $RPM_BUILD_ROOT%{_sbindir}/popauth
+install popper/popper $RPM_BUILD_ROOT%{_sbindir}/qpopper
+install popper/popauth $RPM_BUILD_ROOT%{_sbindir}/popauth
 
 install man/popper.8 $RPM_BUILD_ROOT%{_mandir}/man8/qpopper.8
 install man/popauth.8 $RPM_BUILD_ROOT%{_mandir}/man8/popauth.8
