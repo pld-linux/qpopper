@@ -1,0 +1,90 @@
+diff -ur qpopper4.0.4.orig/samples/qpopper.config qpopper4.0.4/samples/qpopper.config
+--- qpopper4.0.4.orig/samples/qpopper.config	Tue Mar 20 01:47:18 2001
++++ qpopper4.0.4/samples/qpopper.config	Tue Dec  3 19:01:25 2002
+@@ -30,7 +30,7 @@
+ #
+ # Default: /var/spool/bulls
+ #
+-# set bulldir                  = "/var/spool/bulls"
++# set bulldir                  = "/var/mail/bulletins"
+ 
+ 
+ # Set TRUE to permit sessions to continue even if the
+@@ -89,7 +89,7 @@
+ #
+ # Default: none
+ #
+-# set config-file              = /etc/mail/pop/qpopper.config
++# set config-file              = /etc/mail/qpopper.config
+ 
+ 
+ # Enables debug logging.  Output is in syslog.  If this option is used,
+@@ -180,7 +180,7 @@
+ #
+ # Default: false
+ #
+-# set statistics               = false
++set statistics               = true
+ 
+ 
+ # Sets the timeout for network reads.  Qpopper terminates the
+@@ -338,7 +338,7 @@
+ # Default: none
+ #
+ #
+-# set tls-server-cert-file     = /etc/mail/certs/hostname.cert
++# set tls-server-cert-file     = /etc/qpopper/server.crt
+ 
+ 
+ # Specifies a file which contains the server's TLS/SSL private key.
+@@ -352,7 +352,7 @@
+ #
+ # Default: none
+ #
+-# set tls-private-key-file     =
++# set tls-private-key-file     = /etc/qpopper/server.key
+ 
+ 
+ # When set, Qpopper writes a log record at the end of a session
+@@ -466,7 +466,7 @@
+ #
+ # Default: none
+ #
+-# set home-dir-mail            = ".mail"
++# set home-dir-mail            = "Mailbox"
+ 
+ 
+ # When set, instructs Qpopper to generate message unique identifiers
+@@ -485,7 +485,7 @@
+ #
+ # Default: false
+ #
+-# set UW-kluge                 = false
++# set UW-kluge                 = true
+ 
+ 
+ # When set, Qpopper keeps (does not delete) the '.user.pop' file (the
+@@ -560,7 +560,7 @@
+ #
+ # The default is determined at compile time.  
+ #
+-# set spool-dir                = /var/spool/mail
++# set spool-dir                = /var/mail
+ 
+ 
+ # If you do not want '.user.pop' (temporary drop files) to be in the
+@@ -663,7 +663,7 @@
+ # Default: determined at compile time, usually LOG_LOCAL0 or
+ # LOG_MAIL, depending on the operating system.
+ #
+-# set log-facility             = local1
++set log-facility             = mail
+ 
+ 
+ # When set, Qpopper logs successful authentications using the
+@@ -675,5 +675,3 @@
+ # in which case "(v%0) POP login by user /"%1/" at (%2) %3" is used.
+ #
+ # set log-login                = "(v%0) POP login by user /"%1/" at (%2) %3"
+-
+-
