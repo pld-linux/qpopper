@@ -3,13 +3,13 @@ Summary(pl):	Serwer POP3 tworzony przez Qualcomm
 Name:		qpopper
 Version:	3.0.2
 Release:	1
-Copyright:	BSD
+License:	BSD
 Group:		Networking/Daemons
 Group(pl):	Sieciowe/Serwery
 Source0:	ftp://ftp.qualcomm.com/eudora/servers/unix/popper/%{name}%{version}.tar.Z
 Source1:	%{name}.pamd
 Source2:	%{name}.inetd
-Patch:		qpopper-homemaildir.patch
+Patch0:		qpopper-homemaildir.patch
 URL:		http://www.eudora.com/freeware/
 Requires:	pam >= 0.66
 Requires:	inetdaemon
@@ -23,33 +23,33 @@ BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 POP3 server from QUALCOMM, with the following features: lower memory
 requirements, thus faster UIDL assists POP clients which "leave mail
 on server" in determining which messages are new. Implements some
-other extended POP3 commands. 
+other extended POP3 commands.
 
 This version of qpopper is shadow passwords aware, provied your libc
 supports this.
 
-The Linux version also supports the PAM library (so far the PAM 
+The Linux version also supports the PAM library (so far the PAM
 modifications aren't officially supported by Qualcomm. All questions,
 complaints etc. according PAM support should be directed to Marek
 Habersack <grendel@vip.maestro.com.pl>)
 
 %description -l pl 
-Qpopper jest serwerem POP3 tworzonym przez QUALCOMM. Wymaga zdecydowanie 
-mniej zasobów ni¿ inne serwery. Implementuje funkcje zostawiana wiadomo¶ci 
-na serwerze (a tak¿e inne rozszerzenia POP3 takie jak APOP, czy biuletins 
-oraz XMIT i XLIST). U¿ywa tak¿e dostarczanych przez bibliotekê libc funkcji 
-`shadow passwords' jak i (w wersji Linuksowej) PAM (wsparcie dla PAM
-zosta³o dodane przez: Marka Habersacka <grendel@vip.maestro.com.pl>). 
- 
+Qpopper jest serwerem POP3 tworzonym przez QUALCOMM. Wymaga
+zdecydowanie mniej zasobów ni¿ inne serwery. Implementuje funkcje
+zostawiana wiadomo¶ci na serwerze (a tak¿e inne rozszerzenia POP3
+takie jak APOP, czy biuletins oraz XMIT i XLIST). U¿ywa tak¿e
+dostarczanych przez bibliotekê libc funkcji `shadow passwords' jak i
+(w wersji Linuksowej) PAM (wsparcie dla PAM zosta³o dodane przez:
+Marka Habersacka <grendel@vip.maestro.com.pl>).
+
 %prep
 %setup -q -n %{name}%{version}
 %patch0 -p1
 
 %build
-CFLAGS=$RPM_OPT_FLAGS ./configure \
-	--prefix=%{_prefix} \
+%configure \
 	--enable-bulletins=%{_var}/mail/bulletins \
-	--enable-apop=/etc/qpopper/pop.auth \
+	--enable-apop=%{_sysconfdir}/qpopper/pop.auth \
 	--with-apopuid=mail \
 	--with-pam=qpopper \
 	--enable-log-login
@@ -58,9 +58,9 @@ make
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT{%{_sbindir},%{_mandir}/man8}
-install -d $RPM_BUILD_ROOT%{_var}/mail/bulletins
-install -d $RPM_BUILD_ROOT/etc/{pam.d/,qpopper,security,sysconfig/rc-inetd}
+install -d $RPM_BUILD_ROOT{%{_sbindir},%{_mandir}/man8} \
+	$RPM_BUILD_ROOT%{_var}/mail/bulletins \
+	$RPM_BUILD_ROOT/etc/{pam.d/,qpopper,security,sysconfig/rc-inetd}
 
 install -s popper/popper $RPM_BUILD_ROOT%{_sbindir}/qpopper
 install -s popper/popauth $RPM_BUILD_ROOT%{_sbindir}/popauth
@@ -70,16 +70,16 @@ install man/popauth.8 $RPM_BUILD_ROOT%{_mandir}/man8/popauth.8
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/pam.d/qpopper
 install %{SOURCE2} $RPM_BUILD_ROOT/etc/sysconfig/rc-inetd/qpopper
 
-touch $RPM_BUILD_ROOT/etc/qpopper/pop.auth
-touch $RPM_BUILD_ROOT/etc/qpopper/pop.deny
-touch $RPM_BUILD_ROOT/etc/qpopper/pop.auth.db
-touch $RPM_BUILD_ROOT/etc/qpopper/pop.auth.dir
+touch $RPM_BUILD_ROOT%{_sysconfdir}/qpopper/pop.auth
+touch $RPM_BUILD_ROOT%{_sysconfdir}/qpopper/pop.deny
+touch $RPM_BUILD_ROOT%{_sysconfdir}/qpopper/pop.auth.db
+touch $RPM_BUILD_ROOT%{_sysconfdir}/qpopper/pop.auth.dir
 touch $RPM_BUILD_ROOT/etc/security/blacklist.qpopper
 
-gzip -9fn $RPM_BUILD_ROOT%{_mandir}/man8/* doc/*
+gzip -9nf $RPM_BUILD_ROOT%{_mandir}/man8/* doc/*
 
 %post
- 	echo -e `	ls -lFd /usr/sbin/popauth `
+echo -e `	ls -lFd /usr/sbin/popauth `
 if [ ! -f /etc/qpopper/pop.auth ]; then
         popauth -init
 fi
@@ -111,6 +111,6 @@ rm -rf $RPM_BUILD_ROOT
 %attr(644,root, man) %{_mandir}/man8/*
 %attr(640,root,root) %config %verify(not size mtime md5) /etc/pam.d/qpopper
 %attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/sysconfig/rc-inetd/qpopper
-%attr(700,mail,mail) %dir /etc/qpopper
-%attr(600,mail,mail) %config(noreplace) %verify(not size mtime md5) /etc/qpopper/pop.*
+%attr(700,mail,mail) %dir %{_sysconfdir}/qpopper
+%attr(600,mail,mail) %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/qpopper/pop.*
 %attr(640,root,mail) %config(noreplace) %verify(not size mtime md5) /etc/security/blacklist.qpopper
