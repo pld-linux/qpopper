@@ -20,7 +20,7 @@ Prereq:		rc-inetd
 BuildRequires:	pam-devel
 BuildRequires:	gdbm-devel
 Obsoletes:	qpopper6
-BuildRoot:	/tmp/%{name}-%{version}-root
+BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
 POP3 server from QUALCOMM, with the following features: lower memory
