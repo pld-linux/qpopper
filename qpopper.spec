@@ -32,6 +32,7 @@ BuildRequires:	pam-devel
 BuildRequires:	gdbm-devel
 BuildRequires:	autoconf
 %{?_with_mysql:BuildRequires:	mysql-devel}
+Requires:	pam >= 0.77.3
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
