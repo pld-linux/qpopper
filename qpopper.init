@@ -44,7 +44,7 @@ case "$1" in
 	if [ -f /var/lock/subsys/qpopper ]; then
                 msg_stopping Qpopper
                 killproc qpopperd
-                rm -f /var/lock/subsys/qpopper /var/run/qpopper* > /dev/null 2>&1
+                rm -f /var/lock/subsys/qpopper > /dev/null 2>&1
         else
 		msg_not_running Qpopper
 	        exit 1
