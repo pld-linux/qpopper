@@ -30,8 +30,6 @@ BuildRequires:	gdbm-devel
 BuildRequires:	autoconf
 %{?_with_mysql:BuildRequires:	mysql-devel}
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
-Provides:       pop3daemon
-Obsoletes:      pop3daemon
 
 %description
 POP3 server from QUALCOMM, with the following features: lower memory
