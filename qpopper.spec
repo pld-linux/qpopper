@@ -4,6 +4,8 @@
 
 Summary:	POP3 daemon from Qualcomm
 Summary(pl):	Serwer POP3 tworzony przez Qualcomm
+Summary(ru):	Qpopper - наиболее распространенный POP3 сервер для UNIX
+Summary(uk):	Qpopper - найпоширен╕ший POP3 сервер для UNIX
 Name:		qpopper
 Version:	4.0.4
 Release:	2
@@ -21,7 +23,7 @@ Patch0:		%{name}4.0.4-ipv6-20020502.diff.gz
 Patch1:		%{name}-config.patch
 Patch2:		%{name}-basename.patch
 Patch3:		%{name}-man.patch
-Patch4:		http://asteroid-b612.org/software/qpopper-mysql/qpopper-mysql-0.6.patch
+Patch4:		http://asteroid-b612.org/software/qpopper-mysql/%{name}-mysql-0.6.patch
 URL:		http://www.eudora.com/freeware/
 BuildRequires:	pam-devel
 BuildRequires:	gdbm-devel
@@ -40,6 +42,24 @@ Qpopper jest serwerem POP3 tworzonym przez QUALCOMM. Wymaga
 zdecydowanie mniej zasobСw ni© inne serwery. Implementuje funkcje
 zostawiana wiadomo╤ci na serwerze (a tak©e inne rozszerzenia POP3
 takie jak APOP, czy biuletins oraz XMIT i XLIST).
+
+%description -l ru
+Qpopper от QUALCOMM поддерживает распространенный протокол POP3
+получения почты с сервера, используемый многими почтовыми клиентами.
+
+Эта версия требует меньше памяти и имеет более быстрый UIDL (Unique ID
+Listing), который помогает почтовым клиентам, оставляющим почту на
+сервере, в определении того, какие сообщения еще не прочитаны. Также
+она включает расширенные (опциональные) команды POP3 и бюллетени.
+
+%description -l uk
+Qpopper в╕д QUALCOMM п╕дтриму╓ розповсюджений протокол POP3 отримання
+пошти з сервера, який використову╓ться багатьма поштовими кл╕╓нтами.
+
+Ця верс╕я вимага╓ менше пам'ят╕ та ма╓ б╕льш швидкий UIDL (Unique ID
+Listing), який допомага╓ поштовим кл╕╓нтам, як╕ лишають пошту на
+сервер╕, у визначенн╕ як╕ пов╕домлення ще не прочитан╕. Також вона
+м╕стить розширен╕ (опц╕ональн╕) команди POP3 та бюлетен╕.
 
 %package common
 Summary:	POP3 daemon from Qualcomm - common files
@@ -92,8 +112,8 @@ Requires:	inetdaemon
 Qpopper configs for running from inetd with SSL (pop3s).
 
 %description ssl-inetd -l pl
-Pliki konfiguracyjna Qpoppera do startowania demona poprzez inetd
-z obsЁug╠ SSL (pop3s).
+Pliki konfiguracyjna Qpoppera do startowania demona poprzez inetd z
+obsЁug╠ SSL (pop3s).
 
 %package standalone
 Summary:	standalone daemon configs for Qpopper
@@ -101,7 +121,7 @@ Summary(pl):	Pliki konfiguracyjne do startowania Qpoppera w trybie standalone
 Group:		Networking/Daemons
 PreReq:		%{name}-common = %{version}
 PreReq:		rc-scripts
-Requires(post,preun):	/sbin/chkconfig
+Requires(post,preun):/sbin/chkconfig
 Provides:	qpopper = %{version}-%{release}
 Obsoletes:	qpopper-inetd
 Obsoletes:	qpopper6
@@ -122,7 +142,7 @@ Group:		Networking/Daemons
 PreReq:		%{name}-common = %{version}-%{release}
 PreReq:		%{name}-standalone = %{version}-%{release}
 PreReq:		rc-scripts
-Requires(post,preun):	/sbin/chkconfig
+Requires(post,preun):/sbin/chkconfig
 
 %description ssl-standalone
 Qpopper configs for running as a standalone daemon in SSL mode on
@@ -152,7 +172,7 @@ rm -f configure
 	--enable-log-login \
  	--enable-log-facility=LOG_MAIL \
  	--enable-uw-kludge \
- 	--enable-nonauth-file=/etc/qpopper/blacklist \
+	--enable-nonauth-file=%{_sysconfdir}/qpopper/blacklist \
  	--enable-specialauth \
  	--with-openssl \
 	--with-gdbm \
