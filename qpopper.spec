@@ -2,14 +2,16 @@ Summary:	POP3 daemon from Qualcomm
 Summary(pl):	Serwer POP3 tworzony przez Qualcomm
 Name:		qpopper
 Version:	3.0.2
-Release:	3
+Release:	4
 License:	BSD
 Group:		Networking/Daemons
 Group(pl):	Sieciowe/Serwery
+Group(de):	Netzwerkwesen/Server
 Source0:	ftp://ftp.qualcomm.com/eudora/servers/unix/popper/%{name}%{version}.tar.Z
 Source1:	%{name}.pamd
 Source2:	%{name}.inetd
-Patch0:		qpopper-homemaildir.patch
+Patch0:		%{name}-homemaildir.patch
+Patch1:		%{name}-ipv6.patch
 URL:		http://www.eudora.com/freeware/
 Requires:	pam >= 0.66
 Requires:	inetdaemon
@@ -47,14 +49,18 @@ Marka Habersacka <grendel@vip.maestro.com.pl>).
 %prep
 %setup -q -n %{name}%{version}
 %patch0 -p1
+%patch1 -p1
 
 %build
+rm -f configure
+autoconf
 %configure \
 	--enable-bulletins=%{_var}/mail/bulletins \
 	--enable-apop=%{_sysconfdir}/qpopper/pop.auth \
 	--with-apopuid=mail \
 	--with-pam=qpopper \
-	--enable-log-login
+	--enable-log-login \
+	--enable-ipv6
 
 %{__make} 
 
@@ -62,7 +68,7 @@ Marka Habersacka <grendel@vip.maestro.com.pl>).
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT{%{_sbindir},%{_mandir}/man8} \
 	$RPM_BUILD_ROOT%{_var}/mail/bulletins \
-	$RPM_BUILD_ROOT/etc/{pam.d/,qpopper,security,sysconfig/rc-inetd}
+$RPM_BUILD_ROOT%{_sysconfdir}/{pam.d/,qpopper,security,sysconfig/rc-inetd}
 
 install -s popper/popper $RPM_BUILD_ROOT%{_sbindir}/qpopper
 install -s popper/popauth $RPM_BUILD_ROOT%{_sbindir}/popauth
