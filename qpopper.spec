@@ -12,6 +12,7 @@ Release:	1
 License:	BSD
 Group:		Networking/Daemons
 Source0:	ftp://ftp.qualcomm.com/eudora/servers/unix/popper/%{name}%{version}.tar.gz
+# Source0-md5:	e00853280c9e899711f0b0239d3d8f86
 Source1:	%{name}.pamd
 Source2:	%{name}.inetd
 Source3:	%{name}.init
