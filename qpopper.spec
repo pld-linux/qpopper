@@ -13,8 +13,8 @@ Patch1:	     %{name}-glibc.patch
 Patch2:	     %{name}-massive-kpld.patch
 URL:         http://www.eudora.com/freeware/
 Requires:    pam >= 0.66
-BuildPrereq: pam-devel
-BuildPrereq: gdbm-devel
+BuildRequires: pam-devel
+BuildRequires: gdbm-devel
 Obsoletes:   qpopper6
 BuildRoot:   /tmp/%{name}-%{version}--root
 
