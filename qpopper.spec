@@ -28,10 +28,10 @@ Patch4:		http://asteroid-b612.org/software/qpopper-mysql/%{name}-mysql-0.6.patch
 Patch5:		%{name}-gdbm-compat.patch
 Patch6:		%{name}-one_auth_error.patch
 URL:		http://www.eudora.com/freeware/
-BuildRequires:	pam-devel
-BuildRequires:	gdbm-devel
 BuildRequires:	autoconf
+BuildRequires:	gdbm-devel
 %{?_with_mysql:BuildRequires:	mysql-devel}
+BuildRequires:	pam-devel
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
