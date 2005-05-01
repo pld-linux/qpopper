@@ -28,10 +28,10 @@ Patch4:		http://asteroid-b612.org/software/qpopper-mysql/%{name}-mysql-0.6.patch
 Patch5:		%{name}-gdbm-compat.patch
 Patch6:		%{name}-one_auth_error.patch
 URL:		http://www.eudora.com/freeware/
-BuildRequires:	pam-devel
-BuildRequires:	gdbm-devel
 BuildRequires:	autoconf
+BuildRequires:	gdbm-devel
 %{?_with_mysql:BuildRequires:	mysql-devel}
+BuildRequires:	pam-devel
 Requires:	pam >= 0.77.3
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -125,7 +125,7 @@ Summary(pl):	Pliki konfiguracyjne do startowania Qpoppera w trybie standalone
 Group:		Networking/Daemons
 PreReq:		%{name}-common = %{version}
 PreReq:		rc-scripts
-Requires(post,preun):/sbin/chkconfig
+Requires(post,preun):	/sbin/chkconfig
 Provides:	qpopper = %{version}-%{release}
 Obsoletes:	qpopper-inetd
 Obsoletes:	qpopper6
@@ -146,7 +146,7 @@ Group:		Networking/Daemons
 PreReq:		%{name}-common = %{version}-%{release}
 PreReq:		%{name}-standalone = %{version}-%{release}
 PreReq:		rc-scripts
-Requires(post,preun):/sbin/chkconfig
+Requires(post,preun):	/sbin/chkconfig
 
 %description ssl-standalone
 Qpopper configs for running as a standalone daemon in SSL mode on
@@ -176,11 +176,11 @@ rm -f configure
 	--with-popuid=mail \
 	--with-pam=qpopper \
 	--enable-log-login \
- 	--enable-log-facility=LOG_MAIL \
- 	--enable-uw-kludge \
+	--enable-log-facility=LOG_MAIL \
+	--enable-uw-kludge \
 	--enable-nonauth-file=%{_sysconfdir}/qpopper/blacklist \
- 	--enable-specialauth \
- 	--with-openssl \
+	--enable-specialauth \
+	--with-openssl \
 	--with-gdbm \
 %if %{?_with_mysql:1}0
 	--enable-mysql \
@@ -201,11 +201,11 @@ mv -f popper/popper popper/popper.inetd
 	--with-popuid=mail \
 	--with-pam=qpopper \
 	--enable-log-login \
- 	--enable-log-facility=LOG_MAIL \
- 	--enable-uw-kludge \
- 	--enable-nonauth-file=/etc/qpopper/blacklist \
- 	--enable-specialauth \
- 	--with-openssl \
+	--enable-log-facility=LOG_MAIL \
+	--enable-uw-kludge \
+	--enable-nonauth-file=%{_sysconfdir}/qpopper/blacklist \
+	--enable-specialauth \
+	--with-openssl \
 	--with-gdbm \
 %if %{?_with_mysql:1}0
 	--enable-mysql \
@@ -326,36 +326,36 @@ fi
 %doc doc/* GUIDE.pdf README*
 %dir %{_var}/mail/bulletins
 %attr(4755,root,root) %{_sbindir}/popauth
-%attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/pam.d/qpopper
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/pam.d/qpopper
 %attr(770,root,mail) %dir %{_sysconfdir}/qpopper
-%attr(660,root,mail) %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/qpopper/pop.*
+%attr(660,root,mail) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/qpopper/pop.*
 %if %{?_with_mysql:1}0
-%attr(660,root,mail) %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/qpopper/mysql-popper.conf
+%attr(660,root,mail) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/qpopper/mysql-popper.conf
 %endif
-%attr(640,root,mail) %config(noreplace) %verify(not size mtime md5) /etc/security/blacklist.qpopper
+%attr(640,root,mail) %config(noreplace) %verify(not md5 mtime size) /etc/security/blacklist.qpopper
 %{_mandir}/man8/*
 
 %files inetd
 %defattr(644,root,root,755)
-%attr(660,root,mail) %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/qpopper/config
-%attr(640,root,root) %config %verify(not size mtime md5) /etc/sysconfig/rc-inetd/qpopper
-%attr(0755,root,root) %{_sbindir}/qpopper
+%attr(660,root,mail) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/qpopper/config
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/rc-inetd/qpopper
+%attr(755,root,root) %{_sbindir}/qpopper
 
 %files ssl-inetd
 %defattr(644,root,root,755)
-%attr(660,root,mail) %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/qpopper/config-ssl
-%attr(640,root,root) %config %verify(not size mtime md5) /etc/sysconfig/rc-inetd/qpoppers
+%attr(660,root,mail) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/qpopper/config-ssl
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/rc-inetd/qpoppers
 
 %files standalone
 %defattr(644,root,root,755)
-%attr(660,root,mail) %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/qpopper/config
-%attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/sysconfig/qpopper
+%attr(660,root,mail) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/qpopper/config
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/qpopper
 %attr(754,root,root) /etc/rc.d/init.d/qpopper
-%attr(0755,root,root) %{_sbindir}/qpopperd
+%attr(755,root,root) %{_sbindir}/qpopperd
 
 %files ssl-standalone
 %defattr(644,root,root,755)
-%attr(660,root,mail) %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/qpopper/config-ssl
-%attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/sysconfig/qpoppers
+%attr(660,root,mail) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/qpopper/config-ssl
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/qpoppers
 %attr(754,root,root) /etc/rc.d/init.d/qpoppers
-%attr(0755,root,root) %{_sbindir}/qpoppersd
+%attr(755,root,root) %{_sbindir}/qpoppersd
