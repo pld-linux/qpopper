@@ -1,0 +1,56 @@
+diff -ur qpopper4.0.5/configure.in qpopper4.0.5-sendmail/configure.in
+--- qpopper4.0.5/configure.in	2005-05-12 16:29:02.049069640 +0200
++++ qpopper4.0.5-sendmail/configure.in	2005-05-12 16:27:25.335772296 +0200
+@@ -1212,26 +1212,33 @@
+ dnl ---------- Checks for mail stuff ----------
+ dnl
+ 
+-AC_MSG_CHECKING([for sendmail program])
+-if test -f ${sbindir}/sendmail
+-then
+-    AC_DEFINE(MAIL_COMMAND, "${sbindir}/sendmail")
+-    AC_MSG_RESULT([found at ${sbindir}/sendmail])
+-elif test -f /usr/sbin/sendmail
+-then
+-    AC_DEFINE(MAIL_COMMAND, "/usr/sbin/sendmail")
+-    AC_MSG_RESULT([found at /usr/sbin/sendmail])
+-elif test -f /usr/lib/sendmail 
+-then
+-    AC_DEFINE(MAIL_COMMAND, "/usr/lib/sendmail")
+-    AC_MSG_RESULT([found at /usr/lib/sendmail])
+-elif test -f /usr/ucblib/sendmail
+-then
+-    AC_DEFINE(MAIL_COMMAND, "/usr/ucblib/sendmail")
+-    AC_MSG_RESULT([found at /usr/ucblib/sendmail])
++AC_ARG_WITH(sendmail, [ --with-sendmail=path      Sendmail program [autodetect] ],
++            sendmail="$withval", sendmail="no")
++if test "$sendmail" != "no" ; then
++    AC_MSG_RESULT(Using sendmail at "$sendmail")
++    AC_DEFINE(MAIL_COMMAND, "$sendmail")
+ else
+-    AC_MSG_RESULT([ERROR: The sendmail program cannot be located])
+-    exit 1
++    AC_MSG_CHECKING([for sendmail program])
++    if test -f ${sbindir}/sendmail
++    then
++        AC_DEFINE(MAIL_COMMAND, "${sbindir}/sendmail")
++        AC_MSG_RESULT([found at ${sbindir}/sendmail])
++    elif test -f /usr/sbin/sendmail
++    then
++        AC_DEFINE(MAIL_COMMAND, "/usr/sbin/sendmail")
++        AC_MSG_RESULT([found at /usr/sbin/sendmail])
++    elif test -f /usr/lib/sendmail 
++    then
++        AC_DEFINE(MAIL_COMMAND, "/usr/lib/sendmail")
++        AC_MSG_RESULT([found at /usr/lib/sendmail])
++    elif test -f /usr/ucblib/sendmail
++    then
++        AC_DEFINE(MAIL_COMMAND, "/usr/ucblib/sendmail")
++        AC_MSG_RESULT([found at /usr/ucblib/sendmail])
++    else
++        AC_MSG_RESULT([ERROR: The sendmail program cannot be located])
++        exit 1
++    fi
+ fi
+ if test "$spooldir" = "no" -o "$spooldir" = "yes" ; then
+     AC_MSG_CHECKING([for mail spool directory])
