@@ -216,6 +216,7 @@ mv -f popper/popper popper/popper.inetd
 	--with-mysqlincludepath=%{_includedir}/mysql \
 	--with-mysqllibpath=%{_libdir} \
 %endif
+	--with-sendmail=/usr/sbin/sendmail \
 	--enable-ipv6 \
 	--enable-standalone
 
