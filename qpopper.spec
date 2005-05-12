@@ -8,7 +8,7 @@ Summary(ru):	Qpopper - наиболее распространенный POP3 сервер для UNIX
 Summary(uk):	Qpopper - найпоширен╕ший POP3 сервер для UNIX
 Name:		qpopper
 Version:	4.0.5
-Release:	5
+Release:	6
 License:	BSD
 Group:		Networking/Daemons
 Source0:	ftp://ftp.qualcomm.com/eudora/servers/unix/popper/%{name}%{version}.tar.gz
@@ -27,6 +27,7 @@ Patch3:		%{name}-man.patch
 Patch4:		http://asteroid-b612.org/software/qpopper-mysql/%{name}-mysql-0.6.patch
 Patch5:		%{name}-gdbm-compat.patch
 Patch6:		%{name}-one_auth_error.patch
+Patch7:		%{name}-sendmail.patch
 URL:		http://www.eudora.com/freeware/
 BuildRequires:	autoconf
 BuildRequires:	gdbm-devel
@@ -165,6 +166,7 @@ standalone z obsЁug╠ SSL na oddzielnym porcie (pop3s).
 %patch5 -p1
 %{?_with_mysql:%patch4 -p1}
 %patch6 -p1
+%patch7 -p1
 
 %build
 rm -f configure
@@ -188,6 +190,7 @@ rm -f configure
 	--with-mysqlincludepath=%{_includedir}/mysql \
 	--with-mysqllibpath=%{_libdir} \
 %endif
+	--with-sendmail=/usr/sbin/sendmail \
 	--enable-ipv6
 
 %{__make}
