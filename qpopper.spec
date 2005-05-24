@@ -1,16 +1,15 @@
-# TODO
-# - security http://security.gentoo.org/glsa/glsa-200505-17.xml
-# - old bconds
 #
 # Conditional build:
-# 	_with_mysql - MySQL auth support
+#
+%bcond_with	mysql # MySQL auth support
+
 Summary:	POP3 daemon from Qualcomm
 Summary(pl):	Serwer POP3 tworzony przez Qualcomm
 Summary(ru):	Qpopper - наиболее распространенный POP3 сервер для UNIX
 Summary(uk):	Qpopper - найпоширен╕ший POP3 сервер для UNIX
 Name:		qpopper
 Version:	4.0.5
-Release:	7
+Release:	8
 License:	BSD
 Group:		Networking/Daemons
 Source0:	ftp://ftp.qualcomm.com/eudora/servers/unix/popper/%{name}%{version}.tar.gz
@@ -30,10 +29,12 @@ Patch4:		http://asteroid-b612.org/software/qpopper-mysql/%{name}-mysql-0.6.patch
 Patch5:		%{name}-gdbm-compat.patch
 Patch6:		%{name}-one_auth_error.patch
 Patch7:		%{name}-sendmail.patch
+Patch8:		%{name}-CAN-2005-1151.patch
+Patch9:		%{name}-CAN-2005-1152.patch
 URL:		http://www.eudora.com/freeware/
 BuildRequires:	autoconf
 BuildRequires:	gdbm-devel
-%{?_with_mysql:BuildRequires:	mysql-devel}
+%{?with_mysql:BuildRequires:	mysql-devel}
 BuildRequires:	pam-devel
 Requires:	pam >= 0.79.0
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
@@ -166,9 +167,11 @@ standalone z obsЁug╠ SSL na oddzielnym porcie (pop3s).
 %patch2 -p1
 %patch3 -p1
 %patch5 -p1
-%{?_with_mysql:%patch4 -p1}
+%{?with_mysql:%patch4 -p1}
 %patch6 -p1
 %patch7 -p1
+%patch8 -p1
+%patch9 -p1
 
 %build
 rm -f configure
@@ -186,7 +189,7 @@ rm -f configure
 	--enable-specialauth \
 	--with-openssl \
 	--with-gdbm \
-%if %{?_with_mysql:1}0
+%if %{with mysql}
 	--enable-mysql \
 	--with-mysqlconfig=%{_sysconfdir}/qpopper/mysql-popper.conf \
 	--with-mysqlincludepath=%{_includedir}/mysql \
@@ -212,7 +215,7 @@ mv -f popper/popper popper/popper.inetd
 	--enable-specialauth \
 	--with-openssl \
 	--with-gdbm \
-%if %{?_with_mysql:1}0
+%if %{with mysql}
 	--enable-mysql \
 	--with-mysqlconfig=%{_sysconfdir}/qpopper/mysql-popper.conf \
 	--with-mysqlincludepath=%{_includedir}/mysql \
@@ -237,7 +240,7 @@ ln -sf qpopperd $RPM_BUILD_ROOT%{_sbindir}/qpoppersd
 
 install samples/qpopper.config $RPM_BUILD_ROOT%{_sysconfdir}/qpopper/config
 install samples/qpopper.config $RPM_BUILD_ROOT%{_sysconfdir}/qpopper/config-ssl
-%{?_with_mysql:install mysql-popper.conf $RPM_BUILD_ROOT%{_sysconfdir}/qpopper/mysql-popper.conf}
+%{?with_mysql:install mysql-popper.conf $RPM_BUILD_ROOT%{_sysconfdir}/qpopper/mysql-popper.conf}
 
 install man/popper.8 $RPM_BUILD_ROOT%{_mandir}/man8/qpopper.8
 echo ".so popper8" >$RPM_BUILD_ROOT%{_mandir}/man8/qpopperd.8
@@ -335,7 +338,7 @@ fi
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/pam.d/qpopper
 %attr(770,root,mail) %dir %{_sysconfdir}/qpopper
 %attr(660,root,mail) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/qpopper/pop.*
-%if %{?_with_mysql:1}0
+%if %{with mysql}
 %attr(660,root,mail) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/qpopper/mysql-popper.conf
 %endif
 %attr(640,root,mail) %config(noreplace) %verify(not md5 mtime size) /etc/security/blacklist.qpopper
