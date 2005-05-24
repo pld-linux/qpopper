@@ -31,7 +31,7 @@ Patch6:		%{name}-one_auth_error.patch
 Patch7:		%{name}-sendmail.patch
 Patch8:		%{name}-CAN-2005-1151.patch
 Patch9:		%{name}-CAN-2005-1152.patch
-URL:		http://www.eudora.com/freeware/
+URL:		http://www.eudora.com/products/unsupported/qpopper/
 BuildRequires:	autoconf
 BuildRequires:	gdbm-devel
 %{?with_mysql:BuildRequires:	mysql-devel}
