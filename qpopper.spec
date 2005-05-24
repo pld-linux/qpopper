@@ -1,7 +1,9 @@
+# TODO
+# - security http://security.gentoo.org/glsa/glsa-200505-17.xml
+# - old bconds
 #
 # Conditional build:
 # 	_with_mysql - MySQL auth support
-
 Summary:	POP3 daemon from Qualcomm
 Summary(pl):	Serwer POP3 tworzony przez Qualcomm
 Summary(ru):	Qpopper - наиболее распространенный POP3 сервер для UNIX
