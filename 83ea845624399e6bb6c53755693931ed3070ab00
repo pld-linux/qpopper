@@ -1,0 +1,2 @@
+- more specific Requires
+- in %post common (moved from %post) added umask and chown basing on %attr
