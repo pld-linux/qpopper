@@ -1,0 +1,7 @@
+- rel 3
+- added security patch
+- STBR
+- CVE: CAN-2003-0388
+  BUG:
+  A remote user can determine if a specified
+  account name is valid or not.
