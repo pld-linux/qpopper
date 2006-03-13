@@ -36,6 +36,7 @@ BuildRequires:	autoconf
 BuildRequires:	gdbm-devel
 %{?with_mysql:BuildRequires:	mysql-devel}
 BuildRequires:	pam-devel
+BuildRequires:	rpmbuild(macros) >= 1.268
 Requires:	pam >= 0.79.0
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -92,14 +93,14 @@ tak¿e TLS/SSL.
 Summary:	inetd configs for Qpopper
 Summary(pl):	Pliki konfiguracyjne do u¿ycia Qpoppera poprzez inetd
 Group:		Networking/Daemons
-PreReq:		%{name}-common = %{version}-%{release}
-PreReq:		rc-inetd
-Provides:	qpopper = %{version}-%{release}
+Requires:	%{name}-common = %{version}-%{release}
 Requires:	inetdaemon
+Requires:	rc-inetd
+Provides:	qpopper = %{version}-%{release}
+Obsoletes:	imap-pop
 Obsoletes:	qpopper-standalone
 Obsoletes:	qpopper6
 Obsoletes:	solid-pop3d
-Obsoletes:	imap-pop
 
 %description inetd
 Qpopper configs for running from inetd.
@@ -111,10 +112,10 @@ Pliki konfiguracyjna Qpoppera do startowania demona poprzez inetd.
 Summary:	inetd configs for Qpopper with SSL (pop3s)
 Summary(pl):	Pliki konfiguracyjne do u¿ycia Qpoppera poprzez inetd z obslug± SSL (pop3s)
 Group:		Networking/Daemons
-PreReq:		%{name}-common = %{version}-%{release}
-PreReq:		%{name}-inetd = %{version}-%{release}
-PreReq:		rc-inetd
+Requires:	%{name}-common = %{version}-%{release}
+Requires:	%{name}-inetd = %{version}-%{release}
 Requires:	inetdaemon
+Requires:	rc-inetd
 
 %description ssl-inetd
 Qpopper configs for running from inetd with SSL (pop3s).
@@ -127,14 +128,14 @@ obs³ug± SSL (pop3s).
 Summary:	standalone daemon configs for Qpopper
 Summary(pl):	Pliki konfiguracyjne do startowania Qpoppera w trybie standalone
 Group:		Networking/Daemons
-PreReq:		%{name}-common = %{version}
-PreReq:		rc-scripts
 Requires(post,preun):	/sbin/chkconfig
+Requires:	%{name}-common = %{version}
+Requires:	rc-scripts
 Provides:	qpopper = %{version}-%{release}
+Obsoletes:	imap-pop
 Obsoletes:	qpopper-inetd
 Obsoletes:	qpopper6
 Obsoletes:	solid-pop3d
-Obsoletes:	imap-pop
 
 %description standalone
 Qpopper configs for running as a standalone daemon.
@@ -147,10 +148,10 @@ standalone.
 Summary:	standalone daemon configs for Qpopper with SSL on separate port (pop3s)
 Summary(pl):	Pliki konfiguracyjne do startowania Qpoppera w trybie standalone z obs³ug± SSL na oddzielnym porcie (pop3s)
 Group:		Networking/Daemons
-PreReq:		%{name}-common = %{version}-%{release}
-PreReq:		%{name}-standalone = %{version}-%{release}
-PreReq:		rc-scripts
 Requires(post,preun):	/sbin/chkconfig
+Requires:	%{name}-common = %{version}-%{release}
+Requires:	%{name}-standalone = %{version}-%{release}
+Requires:	rc-scripts
 
 %description ssl-standalone
 Qpopper configs for running as a standalone daemon in SSL mode on
@@ -275,58 +276,38 @@ if [ ! -f /etc/qpopper/pop.deny ]; then
 fi
 
 %post inetd
-if [ -f /var/lock/subsys/rc-inetd ]; then
-	/etc/rc.d/init.d/rc-inetd restart 1>&2
-else
-	echo "Type \"/etc/rc.d/init.d/rc-inetd start\" to start inet server" 1>&2
-fi
+%service -q rc-inetd reload
 
 %postun inetd
-if [ "$1" = "0" -a -f /var/lock/subsys/rc-inetd ]; then
-	/etc/rc.d/init.d/rc-inetd restart 1>&2
+if [ "$1" = "0" ]; then
+	%service -q rc-inetd reload
 fi
 
 %post ssl-inetd
-if [ -f /var/lock/subsys/rc-inetd ]; then
-	/etc/rc.d/init.d/rc-inetd restart 1>&2
-else
-	echo "Type \"/etc/rc.d/init.d/rc-inetd start\" to start inet server" 1>&2
-fi
+%service -q rc-inetd reload
 
 %postun ssl-inetd
-if [ "$1" = "0" -a -f /var/lock/subsys/rc-inetd ]; then
-	/etc/rc.d/init.d/rc-inetd restart 1>&2
+if [ "$1" = "0" ]; then
+	%service -q rc-inetd reload
 fi
 
 %post standalone
 /sbin/chkconfig --add qpopper
-if [ -f /var/lock/subsys/qpopper ]; then
-	/etc/rc.d/init.d/qpopper restart 1>&2
-else
-	echo "Run \"/etc/rc.d/init.d/qpopper start\" to start Qpopper daemon."
-fi
+%service qpopper restart "Qpopper daemon"
 
 %preun standalone
 if [ "$1" = "0" ]; then
-	if [ -f /var/lock/subsys/qpopper ]; then
-		/etc/rc.d/init.d/qpopper stop 1>&2
-	fi
+	%service qpopper stop
 	/sbin/chkconfig --del qpopper
 fi
 
 %post ssl-standalone
 /sbin/chkconfig --add qpoppers
-if [ -f /var/lock/subsys/qpoppers ]; then
-	/etc/rc.d/init.d/qpoppers restart 1>&2
-else
-	echo "Run \"/etc/rc.d/init.d/qpoppers start\" to start Qpopper SSL daemon."
-fi
+%service qpoppers restart "Qpopper SSL daemon"
 
 %preun ssl-standalone
 if [ "$1" = "0" ]; then
-	if [ -f /var/lock/subsys/qpoppers ]; then
-		/etc/rc.d/init.d/qpoppers stop 1>&2
-	fi
+	%service qpoppers stop
 	/sbin/chkconfig --del qpoppers
 fi
 
