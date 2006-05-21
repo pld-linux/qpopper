@@ -1,15 +1,14 @@
 #
 # Conditional build:
-#
 %bcond_with	mysql # MySQL auth support
-
+#
 Summary:	POP3 daemon from Qualcomm
 Summary(pl):	Serwer POP3 tworzony przez Qualcomm
 Summary(ru):	Qpopper - наиболее распространенный POP3 сервер для UNIX
 Summary(uk):	Qpopper - найпоширен╕ший POP3 сервер для UNIX
 Name:		qpopper
 Version:	4.0.5
-Release:	8
+Release:	9
 License:	BSD
 Group:		Networking/Daemons
 Source0:	ftp://ftp.qualcomm.com/eudora/servers/unix/popper/%{name}%{version}.tar.gz
@@ -199,7 +198,7 @@ rm -f configure
 	--with-sendmail=/usr/sbin/sendmail \
 	--enable-ipv6
 
-%{__make}
+%{__make} -j1
 mv -f popper/popper popper/popper.inetd
 %{__make} clean
 
