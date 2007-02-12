@@ -3,9 +3,9 @@
 %bcond_with	mysql # MySQL auth support
 #
 Summary:	POP3 daemon from Qualcomm
-Summary(pl):	Serwer POP3 tworzony przez Qualcomm
-Summary(ru):	Qpopper - наиболее распространенный POP3 сервер для UNIX
-Summary(uk):	Qpopper - найпоширен╕ший POP3 сервер для UNIX
+Summary(pl.UTF-8):   Serwer POP3 tworzony przez Qualcomm
+Summary(ru.UTF-8):   Qpopper - п╫п╟п╦п╠п╬п╩п╣п╣ я─п╟я│п©я─п╬я│я┌я─п╟п╫п╣п╫п╫я▀п╧ POP3 я│п╣я─п╡п╣я─ п╢п╩я▐ UNIX
+Summary(uk.UTF-8):   Qpopper - п╫п╟п╧п©п╬я┬п╦я─п╣п╫я√я┬п╦п╧ POP3 я│п╣я─п╡п╣я─ п╢п╩я▐ UNIX
 Name:		qpopper
 Version:	4.0.5
 Release:	9
@@ -45,33 +45,33 @@ requirements, thus faster UIDL assists POP clients which "leave mail
 on server" in determining which messages are new. Implements some
 other extended POP3 commands.
 
-%description -l pl
+%description -l pl.UTF-8
 Qpopper jest serwerem POP3 tworzonym przez QUALCOMM. Wymaga
-zdecydowanie mniej zasobСw ni© inne serwery. Implementuje funkcje
-zostawiana wiadomo╤ci na serwerze (a tak©e inne rozszerzenia POP3
+zdecydowanie mniej zasobцЁw niе╪ inne serwery. Implementuje funkcje
+zostawiana wiadomoе⌡ci na serwerze (a takе╪e inne rozszerzenia POP3
 takie jak APOP, czy biuletins oraz XMIT i XLIST).
 
-%description -l ru
-Qpopper от QUALCOMM поддерживает распространенный протокол POP3
-получения почты с сервера, используемый многими почтовыми клиентами.
+%description -l ru.UTF-8
+Qpopper п╬я┌ QUALCOMM п©п╬п╢п╢п╣я─п╤п╦п╡п╟п╣я┌ я─п╟я│п©я─п╬я│я┌я─п╟п╫п╣п╫п╫я▀п╧ п©я─п╬я┌п╬п╨п╬п╩ POP3
+п©п╬п╩я┐я┤п╣п╫п╦я▐ п©п╬я┤я┌я▀ я│ я│п╣я─п╡п╣я─п╟, п╦я│п©п╬п╩я▄п╥я┐п╣п╪я▀п╧ п╪п╫п╬пЁп╦п╪п╦ п©п╬я┤я┌п╬п╡я▀п╪п╦ п╨п╩п╦п╣п╫я┌п╟п╪п╦.
 
-Эта версия требует меньше памяти и имеет более быстрый UIDL (Unique ID
-Listing), который помогает почтовым клиентам, оставляющим почту на
-сервере, в определении того, какие сообщения еще не прочитаны. Также
-она включает расширенные (опциональные) команды POP3 и бюллетени.
+п╜я┌п╟ п╡п╣я─я│п╦я▐ я┌я─п╣п╠я┐п╣я┌ п╪п╣п╫я▄я┬п╣ п©п╟п╪я▐я┌п╦ п╦ п╦п╪п╣п╣я┌ п╠п╬п╩п╣п╣ п╠я▀я│я┌я─я▀п╧ UIDL (Unique ID
+Listing), п╨п╬я┌п╬я─я▀п╧ п©п╬п╪п╬пЁп╟п╣я┌ п©п╬я┤я┌п╬п╡я▀п╪ п╨п╩п╦п╣п╫я┌п╟п╪, п╬я│я┌п╟п╡п╩я▐я▌я┴п╦п╪ п©п╬я┤я┌я┐ п╫п╟
+я│п╣я─п╡п╣я─п╣, п╡ п╬п©я─п╣п╢п╣п╩п╣п╫п╦п╦ я┌п╬пЁп╬, п╨п╟п╨п╦п╣ я│п╬п╬п╠я┴п╣п╫п╦я▐ п╣я┴п╣ п╫п╣ п©я─п╬я┤п╦я┌п╟п╫я▀. п╒п╟п╨п╤п╣
+п╬п╫п╟ п╡п╨п╩я▌я┤п╟п╣я┌ я─п╟я│я┬п╦я─п╣п╫п╫я▀п╣ (п╬п©я├п╦п╬п╫п╟п╩я▄п╫я▀п╣) п╨п╬п╪п╟п╫п╢я▀ POP3 п╦ п╠я▌п╩п╩п╣я┌п╣п╫п╦.
 
-%description -l uk
-Qpopper в╕д QUALCOMM п╕дтриму╓ розповсюджений протокол POP3 отримання
-пошти з сервера, який використову╓ться багатьма поштовими кл╕╓нтами.
+%description -l uk.UTF-8
+Qpopper п╡я√п╢ QUALCOMM п©я√п╢я┌я─п╦п╪я┐я■ я─п╬п╥п©п╬п╡я│я▌п╢п╤п╣п╫п╦п╧ п©я─п╬я┌п╬п╨п╬п╩ POP3 п╬я┌я─п╦п╪п╟п╫п╫я▐
+п©п╬я┬я┌п╦ п╥ я│п╣я─п╡п╣я─п╟, я▐п╨п╦п╧ п╡п╦п╨п╬я─п╦я│я┌п╬п╡я┐я■я┌я▄я│я▐ п╠п╟пЁп╟я┌я▄п╪п╟ п©п╬я┬я┌п╬п╡п╦п╪п╦ п╨п╩я√я■п╫я┌п╟п╪п╦.
 
-Ця верс╕я вимага╓ менше пам'ят╕ та ма╓ б╕льш швидкий UIDL (Unique ID
-Listing), який допомага╓ поштовим кл╕╓нтам, як╕ лишають пошту на
-сервер╕, у визначенн╕ як╕ пов╕домлення ще не прочитан╕. Також вона
-м╕стить розширен╕ (опц╕ональн╕) команди POP3 та бюлетен╕.
+п╕я▐ п╡п╣я─я│я√я▐ п╡п╦п╪п╟пЁп╟я■ п╪п╣п╫я┬п╣ п©п╟п╪'я▐я┌я√ я┌п╟ п╪п╟я■ п╠я√п╩я▄я┬ я┬п╡п╦п╢п╨п╦п╧ UIDL (Unique ID
+Listing), я▐п╨п╦п╧ п╢п╬п©п╬п╪п╟пЁп╟я■ п©п╬я┬я┌п╬п╡п╦п╪ п╨п╩я√я■п╫я┌п╟п╪, я▐п╨я√ п╩п╦я┬п╟я▌я┌я▄ п©п╬я┬я┌я┐ п╫п╟
+я│п╣я─п╡п╣я─я√, я┐ п╡п╦п╥п╫п╟я┤п╣п╫п╫я√ я▐п╨я√ п©п╬п╡я√п╢п╬п╪п╩п╣п╫п╫я▐ я┴п╣ п╫п╣ п©я─п╬я┤п╦я┌п╟п╫я√. п╒п╟п╨п╬п╤ п╡п╬п╫п╟
+п╪я√я│я┌п╦я┌я▄ я─п╬п╥я┬п╦я─п╣п╫я√ (п╬п©я├я√п╬п╫п╟п╩я▄п╫я√) п╨п╬п╪п╟п╫п╢п╦ POP3 я┌п╟ п╠я▌п╩п╣я┌п╣п╫я√.
 
 %package common
 Summary:	POP3 daemon from Qualcomm - common files
-Summary(pl):	Serwer POP3 tworzony przez Qualcomm - wspСlne pliki
+Summary(pl.UTF-8):   Serwer POP3 tworzony przez Qualcomm - wspцЁlne pliki
 Group:		Networking/Daemons
 Obsoletes:	qpopper < 0:4.0.4-1
 
@@ -81,16 +81,16 @@ requirements, thus faster UIDL assists POP clients which "leave mail
 on server" in determining which messages are new. Implements some
 other extended POP3 commands. Qpopper also supports TLS/SSL.
 
-%description common -l pl
+%description common -l pl.UTF-8
 Qpopper jest serwerem POP3 tworzonym przez QUALCOMM. Wymaga
-zdecydowanie mniej zasobСw ni© inne serwery. Implementuje funkcje
-zostawiana wiadomo╤ci na serwerze (a tak©e inne rozszerzenia POP3
-takie jak APOP, czy biuletins oraz XMIT i XLIST). Qpopper obsЁuguje
-tak©e TLS/SSL.
+zdecydowanie mniej zasobцЁw niе╪ inne serwery. Implementuje funkcje
+zostawiana wiadomoе⌡ci na serwerze (a takе╪e inne rozszerzenia POP3
+takie jak APOP, czy biuletins oraz XMIT i XLIST). Qpopper obsе┌uguje
+takе╪e TLS/SSL.
 
 %package inetd
 Summary:	inetd configs for Qpopper
-Summary(pl):	Pliki konfiguracyjne do u©ycia Qpoppera poprzez inetd
+Summary(pl.UTF-8):   Pliki konfiguracyjne do uе╪ycia Qpoppera poprzez inetd
 Group:		Networking/Daemons
 Requires:	%{name}-common = %{version}-%{release}
 Requires:	inetdaemon
@@ -104,12 +104,12 @@ Obsoletes:	solid-pop3d
 %description inetd
 Qpopper configs for running from inetd.
 
-%description inetd -l pl
+%description inetd -l pl.UTF-8
 Pliki konfiguracyjna Qpoppera do startowania demona poprzez inetd.
 
 %package ssl-inetd
 Summary:	inetd configs for Qpopper with SSL (pop3s)
-Summary(pl):	Pliki konfiguracyjne do u©ycia Qpoppera poprzez inetd z obslug╠ SSL (pop3s)
+Summary(pl.UTF-8):   Pliki konfiguracyjne do uе╪ycia Qpoppera poprzez inetd z obslugд┘ SSL (pop3s)
 Group:		Networking/Daemons
 Requires:	%{name}-common = %{version}-%{release}
 Requires:	%{name}-inetd = %{version}-%{release}
@@ -119,13 +119,13 @@ Requires:	rc-inetd
 %description ssl-inetd
 Qpopper configs for running from inetd with SSL (pop3s).
 
-%description ssl-inetd -l pl
+%description ssl-inetd -l pl.UTF-8
 Pliki konfiguracyjna Qpoppera do startowania demona poprzez inetd z
-obsЁug╠ SSL (pop3s).
+obsе┌ugд┘ SSL (pop3s).
 
 %package standalone
 Summary:	standalone daemon configs for Qpopper
-Summary(pl):	Pliki konfiguracyjne do startowania Qpoppera w trybie standalone
+Summary(pl.UTF-8):   Pliki konfiguracyjne do startowania Qpoppera w trybie standalone
 Group:		Networking/Daemons
 Requires(post,preun):	/sbin/chkconfig
 Requires:	%{name}-common = %{version}
@@ -139,13 +139,13 @@ Obsoletes:	solid-pop3d
 %description standalone
 Qpopper configs for running as a standalone daemon.
 
-%description standalone -l pl
+%description standalone -l pl.UTF-8
 Pliki konfiguracyjne Qpoppera do startowania demona w trybie
 standalone.
 
 %package ssl-standalone
 Summary:	standalone daemon configs for Qpopper with SSL on separate port (pop3s)
-Summary(pl):	Pliki konfiguracyjne do startowania Qpoppera w trybie standalone z obsЁug╠ SSL na oddzielnym porcie (pop3s)
+Summary(pl.UTF-8):   Pliki konfiguracyjne do startowania Qpoppera w trybie standalone z obsе┌ugд┘ SSL na oddzielnym porcie (pop3s)
 Group:		Networking/Daemons
 Requires(post,preun):	/sbin/chkconfig
 Requires:	%{name}-common = %{version}-%{release}
@@ -156,9 +156,9 @@ Requires:	rc-scripts
 Qpopper configs for running as a standalone daemon in SSL mode on
 separate port (pop3s).
 
-%description ssl-standalone -l pl
+%description ssl-standalone -l pl.UTF-8
 Pliki konfiguracyjne Qpoppera do startowania demona w trybie
-standalone z obsЁug╠ SSL na oddzielnym porcie (pop3s).
+standalone z obsе┌ugд┘ SSL na oddzielnym porcie (pop3s).
 
 %prep
 %setup -q -n %{name}%{version}
