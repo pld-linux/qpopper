@@ -185,7 +185,7 @@ rm -f configure
 	--enable-log-login \
 	--enable-log-facility=LOG_MAIL \
 	--enable-uw-kludge \
-	--enable-nonauth-file=%{_sysconfdir}/qpopper/blacklist.pop3 \
+	--enable-nonauth-file=%{_sysconfdir}/qpopper/blacklist \
 	--enable-specialauth \
 	--with-openssl \
 	--with-gdbm \
@@ -211,7 +211,7 @@ mv -f popper/popper popper/popper.inetd
 	--enable-log-login \
 	--enable-log-facility=LOG_MAIL \
 	--enable-uw-kludge \
-	--enable-nonauth-file=%{_sysconfdir}/qpopper/blacklist.pop3 \
+	--enable-nonauth-file=%{_sysconfdir}/qpopper/blacklist \
 	--enable-specialauth \
 	--with-openssl \
 	--with-gdbm \
