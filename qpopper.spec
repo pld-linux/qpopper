@@ -8,7 +8,7 @@ Summary(ru.UTF-8):	Qpopper - наиболее распространенный P
 Summary(uk.UTF-8):	Qpopper - найпоширеніший POP3 сервер для UNIX
 Name:		qpopper
 Version:	4.0.5
-Release:	9
+Release:	10
 License:	BSD
 Group:		Networking/Daemons
 Source0:	ftp://ftp.qualcomm.com/eudora/servers/unix/popper/%{name}%{version}.tar.gz
@@ -185,7 +185,7 @@ rm -f configure
 	--enable-log-login \
 	--enable-log-facility=LOG_MAIL \
 	--enable-uw-kludge \
-	--enable-nonauth-file=%{_sysconfdir}/qpopper/blacklist \
+	--enable-nonauth-file=%{_sysconfdir}/qpopper/blacklist.pop3 \
 	--enable-specialauth \
 	--with-openssl \
 	--with-gdbm \
@@ -211,7 +211,7 @@ mv -f popper/popper popper/popper.inetd
 	--enable-log-login \
 	--enable-log-facility=LOG_MAIL \
 	--enable-uw-kludge \
-	--enable-nonauth-file=%{_sysconfdir}/qpopper/blacklist \
+	--enable-nonauth-file=%{_sysconfdir}/qpopper/blacklist.pop3 \
 	--enable-specialauth \
 	--with-openssl \
 	--with-gdbm \
@@ -258,7 +258,7 @@ touch $RPM_BUILD_ROOT%{_sysconfdir}/qpopper/pop.auth
 touch $RPM_BUILD_ROOT%{_sysconfdir}/qpopper/pop.deny
 touch $RPM_BUILD_ROOT%{_sysconfdir}/qpopper/pop.auth.db
 touch $RPM_BUILD_ROOT%{_sysconfdir}/qpopper/pop.auth.dir
-touch $RPM_BUILD_ROOT/etc/security/blacklist.qpopper
+touch $RPM_BUILD_ROOT/etc/security/blacklist.pop3
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -321,7 +321,7 @@ fi
 %if %{with mysql}
 %attr(660,root,mail) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/qpopper/mysql-popper.conf
 %endif
-%attr(640,root,mail) %config(noreplace) %verify(not md5 mtime size) /etc/security/blacklist.qpopper
+%attr(640,root,mail) %config(noreplace) %verify(not md5 mtime size) /etc/security/blacklist.pop3
 %{_mandir}/man8/*
 
 %files inetd
