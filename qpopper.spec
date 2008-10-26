@@ -10,7 +10,7 @@ Name:		qpopper
 Version:	4.0.5
 Release:	10
 License:	BSD
-Group:		Networking/Daemons
+Group:		Networking/Daemons/POP3
 Source0:	ftp://ftp.qualcomm.com/eudora/servers/unix/popper/%{name}%{version}.tar.gz
 # Source0-md5:	e00853280c9e899711f0b0239d3d8f86
 Source1:	%{name}.pamd
@@ -72,7 +72,7 @@ Listing), який допомагає поштовим клієнтам, які 
 %package common
 Summary:	POP3 daemon from Qualcomm - common files
 Summary(pl.UTF-8):	Serwer POP3 tworzony przez Qualcomm - wspólne pliki
-Group:		Networking/Daemons
+Group:		Networking/Daemons/POP3
 Obsoletes:	qpopper < 0:4.0.4-1
 
 %description common
@@ -91,7 +91,7 @@ także TLS/SSL.
 %package inetd
 Summary:	inetd configs for Qpopper
 Summary(pl.UTF-8):	Pliki konfiguracyjne do użycia Qpoppera poprzez inetd
-Group:		Networking/Daemons
+Group:		Networking/Daemons/POP3
 Requires:	%{name}-common = %{version}-%{release}
 Requires:	inetdaemon
 Requires:	rc-inetd
@@ -110,7 +110,7 @@ Pliki konfiguracyjna Qpoppera do startowania demona poprzez inetd.
 %package ssl-inetd
 Summary:	inetd configs for Qpopper with SSL (pop3s)
 Summary(pl.UTF-8):	Pliki konfiguracyjne do użycia Qpoppera poprzez inetd z obslugą SSL (pop3s)
-Group:		Networking/Daemons
+Group:		Networking/Daemons/POP3
 Requires:	%{name}-common = %{version}-%{release}
 Requires:	%{name}-inetd = %{version}-%{release}
 Requires:	inetdaemon
@@ -126,7 +126,7 @@ obsługą SSL (pop3s).
 %package standalone
 Summary:	standalone daemon configs for Qpopper
 Summary(pl.UTF-8):	Pliki konfiguracyjne do startowania Qpoppera w trybie standalone
-Group:		Networking/Daemons
+Group:		Networking/Daemons/POP3
 Requires(post,preun):	/sbin/chkconfig
 Requires:	%{name}-common = %{version}
 Requires:	rc-scripts
@@ -146,7 +146,7 @@ standalone.
 %package ssl-standalone
 Summary:	standalone daemon configs for Qpopper with SSL on separate port (pop3s)
 Summary(pl.UTF-8):	Pliki konfiguracyjne do startowania Qpoppera w trybie standalone z obsługą SSL na oddzielnym porcie (pop3s)
-Group:		Networking/Daemons
+Group:		Networking/Daemons/POP3
 Requires(post,preun):	/sbin/chkconfig
 Requires:	%{name}-common = %{version}-%{release}
 Requires:	%{name}-standalone = %{version}-%{release}
