@@ -95,8 +95,10 @@ Group:		Networking/Daemons/POP3
 Requires:	%{name}-common = %{version}-%{release}
 Requires:	inetdaemon
 Requires:	rc-inetd
+Provides:	pop3daemon
 Provides:	qpopper = %{version}-%{release}
 Obsoletes:	imap-pop
+Obsoletes:	pop3daemon
 Obsoletes:	qpopper-standalone
 Obsoletes:	qpopper6
 Obsoletes:	solid-pop3d
@@ -130,8 +132,10 @@ Group:		Networking/Daemons/POP3
 Requires(post,preun):	/sbin/chkconfig
 Requires:	%{name}-common = %{version}
 Requires:	rc-scripts
+Provides:	pop3daemon
 Provides:	qpopper = %{version}-%{release}
 Obsoletes:	imap-pop
+Obsoletes:	pop3daemon
 Obsoletes:	qpopper-inetd
 Obsoletes:	qpopper6
 Obsoletes:	solid-pop3d
