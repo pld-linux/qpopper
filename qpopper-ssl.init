@@ -35,7 +35,7 @@ case "$1" in
 	# Check if the service is already running?
 	if [ ! -f /var/lock/subsys/qpoppers ]; then
 		msg_starting "Qpopper SSL"
-		daemon qpoppersd $QPOPPER_OPTS
+		daemon --waitforname qpoppersd /usr/sbin/qpoppersd $QPOPPER_OPTS
 		RETVAL=$?
 		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/qpoppers
 	else
@@ -47,7 +47,7 @@ case "$1" in
 	if [ -f /var/lock/subsys/qpoppers ]; then
 		msg_stopping "Qpopper SSL"
 		killproc qpoppersd
-		rm -f /var/lock/subsys/qpoppers > /dev/null 2>&1
+		rm -f /var/lock/subsys/qpoppers >/dev/null 2>&1
 	else
 		msg_not_running "Qpopper SSL"
 	fi
