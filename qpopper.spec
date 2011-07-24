@@ -8,7 +8,7 @@ Summary(ru.UTF-8):	Qpopper - наиболее распространенный P
 Summary(uk.UTF-8):	Qpopper - найпоширеніший POP3 сервер для UNIX
 Name:		qpopper
 Version:	4.0.5
-Release:	10
+Release:	11
 License:	BSD
 Group:		Networking/Daemons/POP3
 Source0:	ftp://ftp.qualcomm.com/eudora/servers/unix/popper/%{name}%{version}.tar.gz

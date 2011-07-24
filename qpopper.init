@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# qpopper	Qpopper ftp server
+# qpopper	Qpopper POP3 server
 #
 # chkconfig:	345 85 15
 # description:	Qpopper is a highly configurable POP3 daemon.
@@ -35,7 +35,7 @@ case "$1" in
 	# Check if the service is already running?
 	if [ ! -f /var/lock/subsys/qpopper ]; then
 		msg_starting Qpopper
-		daemon qpopperd $QPOPPER_OPTS
+		daemon --waitforname qpopperd /usr/sbin/qpopperd $QPOPPER_OPTS
 		RETVAL=$?
 		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/qpopper
 	else
