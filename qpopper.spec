@@ -21,6 +21,7 @@ Source5:	%{name}-ssl.inetd
 Source6:	%{name}-ssl.init
 Source7:	%{name}-ssl.sysconfig
 Patch0:		%{name}4.0.4-ipv6-20020502.diff.gz
+# Patch0-md5:	f1ac6b9228ce643e9176f0bda7fb0811
 Patch1:		%{name}-config.patch
 Patch2:		%{name}-basename.patch
 Patch3:		%{name}-man.patch
